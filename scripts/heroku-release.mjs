@@ -5,7 +5,16 @@
 import { spawnSync } from "node:child_process";
 
 const raw = process.env.DATABASE_URL ?? "";
-if (raw && !/[?&]sslmode=/.test(raw) && !/localhost|127\.0\.0\.1/.test(raw)) {
+if (!raw) {
+  console.error(
+    "\n[release] DATABASE_URL is not set on this dyno.\n" +
+      "          The Postgres addon is probably not attached.\n" +
+      "          Run: heroku addons:create heroku-postgresql:mini\n" +
+      "          Then redeploy (an empty commit is enough).\n",
+  );
+  process.exit(1);
+}
+if (!/[?&]sslmode=/.test(raw) && !/localhost|127\.0\.0\.1/.test(raw)) {
   process.env.DATABASE_URL = raw + (raw.includes("?") ? "&" : "?") + "sslmode=require";
 }
 
