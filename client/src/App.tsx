@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useAuth } from "./store/auth";
 import { useGame } from "./store/game";
 import { disconnectSocket, getSocket } from "./lib/socket";
-import type { MatchFound, MatchQuestion, MatchResult } from "./lib/types";
+import type { MatchFound, MatchQuestion, MatchResult, RoundResult } from "./lib/types";
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { Queue } from "./pages/Queue";
@@ -74,6 +74,10 @@ function AuthedApp() {
       game().setPhase("in_duel");
       game().setCountdown(null);
     };
+    const onRoundResult = (p: RoundResult) => {
+      game().setRoundResult(p);
+      game().setPhase("round_over");
+    };
     const onOpponentSubmitted = () => game().markOpponentSubmitted();
     const onMatchResult = (p: MatchResult) => {
       game().setResult(p);
@@ -107,6 +111,7 @@ function AuthedApp() {
     socket.on("match:found", onMatchFound);
     socket.on("match:countdown", onMatchCountdown);
     socket.on("match:question", onMatchQuestion);
+    socket.on("match:roundResult", onRoundResult);
     socket.on("match:opponentSubmitted", onOpponentSubmitted);
     socket.on("match:result", onMatchResult);
     socket.on("match:aborted", onMatchAborted);
@@ -121,6 +126,7 @@ function AuthedApp() {
       socket.off("match:found", onMatchFound);
       socket.off("match:countdown", onMatchCountdown);
       socket.off("match:question", onMatchQuestion);
+      socket.off("match:roundResult", onRoundResult);
       socket.off("match:opponentSubmitted", onOpponentSubmitted);
       socket.off("match:result", onMatchResult);
       socket.off("match:aborted", onMatchAborted);

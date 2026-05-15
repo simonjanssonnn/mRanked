@@ -4,6 +4,8 @@ import { useAuth } from "../store/auth";
 import { useGame } from "../store/game";
 import { getSocket } from "../lib/socket";
 import { Avatar } from "../components/Avatar";
+import { Logo } from "../components/Logo";
+import { TitleChip } from "../components/TitleChip";
 import { CLASSIC_TIERS, TIER_COLORS, tierForElo } from "../lib/ranks";
 
 export function Home() {
@@ -31,15 +33,30 @@ export function Home() {
 
   return (
     <div className="min-h-screen">
-      <header className="px-6 py-5 flex items-center justify-between border-b border-cream-200/60">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-clay to-violet flex items-center justify-center font-serif font-bold text-cream-50">∑</div>
-          <div className="font-serif text-xl tracking-tight">Math Ranked</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Avatar username={user.username} size="md" self />
-          <span className="text-sm text-ink-700 hidden sm:inline">@{user.username}</span>
-        </div>
+      <header className="px-6 py-4 flex items-center justify-between border-b border-cream-200/60">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+          aria-label="Home"
+        >
+          <Logo />
+        </button>
+        <button
+          onClick={() => navigate("/profile")}
+          className="group flex items-center gap-3 rounded-full pl-3 pr-1.5 py-1.5 border border-cream-200/60 hover:border-clay/40 hover:bg-cream-100/40 transition-colors"
+          aria-label="Open profile"
+        >
+          <div className="text-right hidden sm:block">
+            <div className="text-sm font-semibold text-ink-950 leading-tight flex items-center gap-1.5">
+              @{user.username}
+              <TitleChip titleId={user.equippedTitle} size="xs" />
+            </div>
+            <div className="text-[10px] uppercase tracking-widest text-ink-500 tabular-nums">
+              {tier.name} · {user.classicElo}
+            </div>
+          </div>
+          <Avatar username={user.username} size="md" self ring />
+        </button>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 pt-12 pb-24">
@@ -85,7 +102,7 @@ export function Home() {
           whileTap={{ scale: 0.99 }}
           className="btn-primary w-full text-xl py-5 mt-6"
         >
-          Play ranked
+          Play ranked · Best of 3
         </motion.button>
         <button
           onClick={() => navigate("/practice")}
@@ -102,17 +119,22 @@ export function Home() {
           <Stat label="Win %" value={winRate} suffix="%" />
         </div>
 
-        <nav className="mt-10 flex items-center justify-center gap-2 text-sm flex-wrap">
-          <NavLink onClick={() => navigate("/ranks")}>Ranks</NavLink>
-          <Dot />
-          <NavLink onClick={() => navigate("/leaderboard")}>Leaderboard</NavLink>
-          <Dot />
-          <NavLink onClick={() => navigate("/profile")}>Profile</NavLink>
-          <Dot />
-          <NavLink onClick={() => navigate("/settings")}>Settings</NavLink>
-          <Dot />
-          <NavLink onClick={() => logout()}>Log out</NavLink>
-        </nav>
+        {/* Navigation tiles — pulled out of a flat link list into discoverable cards */}
+        <div className="mt-10 grid grid-cols-2 gap-3">
+          <NavTile icon={IconLadder} title="Ranks" sub="See the climb" onClick={() => navigate("/ranks")} />
+          <NavTile icon={IconCrown} title="Leaderboard" sub="Top players" onClick={() => navigate("/leaderboard")} />
+          <NavTile icon={IconUser} title="Profile" sub="History & stats" onClick={() => navigate("/profile")} />
+          <NavTile icon={IconGear} title="Settings" sub="Avatar, title, prefs" onClick={() => navigate("/settings")} />
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => logout()}
+            className="text-xs uppercase tracking-widest text-ink-500 hover:text-bad transition-colors px-3 py-1.5"
+          >
+            Log out
+          </button>
+        </div>
       </main>
     </div>
   );
@@ -129,7 +151,57 @@ function Stat({ label, value, valueClass, suffix }: { label: string; value: numb
   );
 }
 
-function NavLink({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
-  return <button className="text-ink-600 hover:text-clay transition-colors px-1" onClick={onClick}>{children}</button>;
+function NavTile({ icon: Icon, title, sub, onClick }: {
+  icon: (p: { className?: string }) => JSX.Element;
+  title: string;
+  sub: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="card p-4 flex items-center gap-3 text-left hover:border-clay/40 hover:shadow-glow transition-all group"
+    >
+      <div className="w-10 h-10 rounded-xl bg-cream-200/40 group-hover:bg-clay/15 flex items-center justify-center transition-colors">
+        <Icon className="w-5 h-5 text-clay" />
+      </div>
+      <div className="min-w-0">
+        <div className="font-semibold text-ink-950">{title}</div>
+        <div className="text-xs text-ink-600 truncate">{sub}</div>
+      </div>
+    </button>
+  );
 }
-function Dot() { return <span className="text-ink-400">·</span>; }
+
+// Tiny inline icons — keeps the bundle lean (no icon dep).
+function IconLadder({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 3v18M17 3v18M7 8h10M7 13h10M7 18h10" />
+    </svg>
+  );
+}
+function IconCrown({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 7l4 4 5-7 5 7 4-4-2 12H5L3 7z" />
+      <path d="M5 19h14" />
+    </svg>
+  );
+}
+function IconUser({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+    </svg>
+  );
+}
+function IconGear({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1A2 2 0 1 1 4.3 17l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1A2 2 0 1 1 7 4.3l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+    </svg>
+  );
+}

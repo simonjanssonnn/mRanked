@@ -7,6 +7,7 @@ import { loadSettings } from "../lib/settings";
 import { CLASSIC_TIERS } from "../lib/ranks";
 import { MathBlock } from "../components/Math";
 import { TimerRing } from "../components/TimerRing";
+import { PageHeader } from "../components/PageHeader";
 
 type Phase = "loading" | "solving" | "result" | "error";
 
@@ -70,11 +71,7 @@ export function Practice() {
 
   return (
     <div className="min-h-screen">
-      <header className="px-6 py-5 flex items-center justify-between border-b border-cream-200">
-        <button className="btn-subtle text-sm" onClick={() => navigate("/", { replace: true })}>← Home</button>
-        <div className="font-serif text-xl">Practice</div>
-        <span className="w-12" />
-      </header>
+      <PageHeader title="Practice" />
 
       <main className="max-w-2xl mx-auto px-6 py-10 flex flex-col items-center">
         {phase === "loading" && <div className="text-ink-500">Loading a problem…</div>}

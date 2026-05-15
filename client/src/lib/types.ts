@@ -26,6 +26,7 @@ export type MatchFound = {
   matchId: string;
   opponent: MatchOpponent;
   mode: string;
+  roundsTotal: number;
 };
 
 export type MatchQuestion = {
@@ -35,6 +36,38 @@ export type MatchQuestion = {
   options?: string[];
   timeLimitSec: number;
   calculatorAllowed: boolean;
+  round: number;
+  roundsTotal: number;
+  yourScore: number;
+  opponentScore: number;
+};
+
+export type RoundResult = {
+  round: number;
+  roundsTotal: number;
+  yourScore: number;
+  opponentScore: number;
+  correctAnswer: string;
+  yourAnswer: string | null;
+  opponentAnswer: string | null;
+  youCorrect: boolean;
+  opponentCorrect: boolean;
+  yourTimeMs: number | null;
+  opponentTimeMs: number | null;
+  result: "win" | "loss" | "draw";
+  reason?: string;
+};
+
+export type RoundBreakdown = {
+  problemPrompt: string;
+  correctAnswer: string;
+  yourAnswer: string | null;
+  opponentAnswer: string | null;
+  youCorrect: boolean;
+  opponentCorrect: boolean;
+  yourTimeMs: number | null;
+  opponentTimeMs: number | null;
+  result: "win" | "loss" | "draw";
 };
 
 export type MatchResult = {
@@ -58,6 +91,8 @@ export type MatchResult = {
   result: "win" | "loss" | "draw";
   reason?: string;
   opponent?: MatchOpponent;
+  score: { you: number; opponent: number };
+  rounds: RoundBreakdown[];
 };
 
 export type HistoryPlayer = PublicProfile & {

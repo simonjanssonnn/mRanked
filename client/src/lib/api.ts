@@ -1,6 +1,9 @@
 import type { HistoryResponse, PublicProfile, User } from "./types";
 
-const API = (import.meta.env.VITE_API_URL ?? "").trim();
+// All server endpoints live under /api/* so they never collide with client-side
+// routes like /leaderboard or /profile (which used to return JSON on refresh).
+const API_BASE = (import.meta.env.VITE_API_URL ?? "").trim();
+const API = API_BASE ? `${API_BASE.replace(/\/$/, "")}/api` : "/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(API + path, {

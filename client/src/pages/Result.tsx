@@ -40,7 +40,7 @@ export function Result() {
 
   const headline =
     result.result === "win" ? "Victory" :
-    result.result === "draw" ? "Stalemate" : "Defeat";
+    result.result === "draw" ? "Draw" : "Defeat";
   const headlineColor =
     result.result === "win" ? "text-good" :
     result.result === "draw" ? "text-ink-700" : "text-bad";
@@ -54,96 +54,74 @@ export function Result() {
     navigate("/queue", { replace: true });
   }
 
-  // Who was actually faster (only meaningful when both submitted).
-  const bothSubmitted = result.yourTimeMs !== null && result.opponentTimeMs !== null;
-  const youFaster = bothSubmitted && (result.yourTimeMs as number) < (result.opponentTimeMs as number);
-  const opponentFaster = bothSubmitted && (result.opponentTimeMs as number) < (result.yourTimeMs as number);
-  const timeDiffMs = bothSubmitted
-    ? Math.abs((result.yourTimeMs as number) - (result.opponentTimeMs as number))
-    : null;
-
-  const youWon = result.result === "win";
   const opponentName = match?.opponent.username ?? "opponent";
-  const winnerName = result.result === "draw" ? null : (youWon ? user.username : opponentName);
-  const fastestName = !bothSubmitted ? null : (youFaster ? user.username : opponentName);
+  const score = result.score ?? { you: 0, opponent: 0 };
+  const rounds = result.rounds ?? [];
+
+  // Subtitle context
+  const subtitle =
+    result.result === "draw"
+      ? "Equal round wins — no one takes the match"
+      : result.result === "win"
+      ? `You took ${score.you} of ${rounds.length || "the"} rounds`
+      : `${opponentName} took ${score.opponent} of ${rounds.length || "the"} rounds`;
 
   return (
-    <div className="min-h-screen px-6 py-10 max-w-2xl mx-auto">
+    <div className="min-h-screen px-6 py-10 max-w-3xl mx-auto">
       {/* Headline + ELO delta */}
-      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6">
         <div className={`text-xs uppercase tracking-[0.3em] mb-1 font-semibold ${headlineColor}`}>{headline}</div>
         <div className="font-serif text-7xl tabular-nums leading-none">
-          <span className={result.eloDelta >= 0 ? "text-good" : "text-bad"}>{sign}{shown}</span>
+          <span className={result.eloDelta > 0 ? "text-good" : result.eloDelta < 0 ? "text-bad" : "text-ink-700"}>{sign}{shown}</span>
         </div>
         <div className="mt-2 text-ink-700 text-sm">
           New rating <span className="font-semibold text-ink-950 tabular-nums">{result.newElo}</span>
           {" · "}{tierForElo(result.newElo).name}
         </div>
+        <div className="text-xs text-ink-500 mt-2">{subtitle}</div>
       </motion.div>
 
-      {/* Winner + Fastest summary — always present so players see what happened. */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <SummaryCard
-          icon="🏆"
-          title="Winner"
-          name={winnerName ?? "—"}
-          subtitle={
-            result.result === "draw"
-              ? "Tie — no winner"
-              : winnerName === user.username
-                ? "You took the round"
-                : `${opponentName} took the round`
-          }
-          highlight={winnerName === user.username}
-        />
-        <SummaryCard
-          icon="⚡"
-          title="Fastest"
-          name={fastestName ?? "—"}
-          subtitle={
-            !bothSubmitted
-              ? "Only one player submitted"
-              : timeDiffMs !== null
-                ? `Won the clock by ${(timeDiffMs / 1000).toFixed(2)}s`
-                : "Tied to the millisecond"
-          }
-          highlight={fastestName === user.username}
-        />
+      {/* Scoreboard */}
+      <div className="card-raised p-5 mb-5">
+        <div className="grid grid-cols-3 items-center gap-3">
+          <div className="text-center">
+            <Avatar username={user.username} size="lg" self />
+            <div className="mt-1 font-semibold truncate">@{user.username}</div>
+            <div className="text-xs text-ink-600">{tierForElo(result.newElo).name}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] uppercase tracking-[0.3em] text-ink-500 mb-1">Final score</div>
+            <div className="font-serif text-5xl tabular-nums">
+              <span className={result.result === "win" ? "text-good" : result.result === "loss" ? "text-ink-400" : "text-ink-700"}>{score.you}</span>
+              <span className="text-ink-400 mx-2">–</span>
+              <span className={result.result === "loss" ? "text-bad" : result.result === "win" ? "text-ink-400" : "text-ink-700"}>{score.opponent}</span>
+            </div>
+            <div className="text-[10px] uppercase tracking-widest text-ink-500 mt-1">Best of {rounds.length || 3}</div>
+          </div>
+          <div className="text-center">
+            <Avatar username={opponentName} size="lg" profile={match?.opponent} />
+            <div className="mt-1 font-semibold truncate">@{opponentName}</div>
+            <div className="text-xs text-ink-600">{match?.opponent.rank}</div>
+          </div>
+        </div>
       </div>
 
-      {/* Per-player breakdown */}
-      <div className="card p-5 mb-4 grid grid-cols-2 gap-4 text-sm">
-        <Side
-          username={user.username}
-          label="You"
-          correct={result.youCorrect}
-          accuracy={result.yourAccuracy}
-          timeMs={result.yourTimeMs}
-          answer={result.yourAnswer}
-          faster={youFaster}
-          winner={youWon}
-          isSelf
-        />
-        <Side
-          username={opponentName}
-          label="Opponent"
-          correct={result.opponentCorrect}
-          accuracy={result.opponentAccuracy}
-          timeMs={result.opponentTimeMs}
-          answer={result.opponentAnswer}
-          faster={opponentFaster}
-          winner={result.result === "loss"}
-        />
-      </div>
+      {/* Per-round breakdown */}
+      {rounds.length > 0 && (
+        <div className="card p-5 mb-5">
+          <div className="text-xs uppercase tracking-[0.25em] text-clay font-semibold mb-3">Round-by-round</div>
+          <div className="space-y-3">
+            {rounds.map((r, i) => (
+              <RoundLine key={i} index={i + 1} r={r} opponentName={opponentName} />
+            ))}
+          </div>
+        </div>
+      )}
 
-      <div className="text-[11px] text-ink-500 text-center mb-6 px-2">
-        Tiebreak rule: when both are correct (or both wrong), the faster submission wins.
-      </div>
-
+      {/* Last round's correct answer + solution (kept for the worked solution) */}
       <div className="card p-6 mb-6">
-        <div className="text-xs uppercase tracking-[0.25em] text-clay font-semibold mb-2">Correct answer</div>
+        <div className="text-xs uppercase tracking-[0.25em] text-clay font-semibold mb-2">Final round · solution</div>
         <div className="text-2xl mb-4"><MathBlock>{result.correctAnswer}</MathBlock></div>
-        <div className="text-xs uppercase tracking-[0.25em] text-clay font-semibold mb-2">Solution</div>
         <MathBlock className="text-ink-800 leading-relaxed">{result.solution}</MathBlock>
       </div>
 
@@ -155,53 +133,53 @@ export function Result() {
   );
 }
 
-function SummaryCard({ icon, title, name, subtitle, highlight }: {
-  icon: string; title: string; name: string; subtitle: string; highlight: boolean;
+function RoundLine({ index, r, opponentName }: {
+  index: number;
+  r: NonNullable<ReturnType<typeof useGame.getState>["result"]>["rounds"][number];
+  opponentName: string;
 }) {
+  const dot =
+    r.result === "win" ? "bg-good" :
+    r.result === "loss" ? "bg-bad" :
+    "bg-ink-400";
+  const label =
+    r.result === "win" ? "Won" :
+    r.result === "loss" ? "Lost" :
+    "Drew";
+  const labelColor =
+    r.result === "win" ? "text-good" :
+    r.result === "loss" ? "text-bad" :
+    "text-ink-700";
   return (
-    <div className={`card p-4 ${highlight ? "ring-1 ring-clay/40 shadow-glow" : ""}`}>
-      <div className="text-[10px] uppercase tracking-widest text-ink-500 mb-1">{title}</div>
-      <div className="flex items-center gap-2">
-        <span className="text-xl leading-none">{icon}</span>
-        <span className={`font-semibold truncate ${highlight ? "text-clay" : "text-ink-950"}`}>
-          @{name}
-        </span>
+    <div className="border border-cream-200 rounded-xl p-3">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
+          <span className="text-[10px] uppercase tracking-widest text-ink-500">Round {index}</span>
+          <span className={`text-sm font-semibold ${labelColor}`}>{label}</span>
+        </div>
+        <div className="flex items-center gap-3 text-xs tabular-nums text-ink-700">
+          <span>You {r.yourTimeMs == null ? "—" : `${(r.yourTimeMs / 1000).toFixed(2)}s`}</span>
+          <span className="text-ink-400">·</span>
+          <span>@{opponentName} {r.opponentTimeMs == null ? "—" : `${(r.opponentTimeMs / 1000).toFixed(2)}s`}</span>
+        </div>
       </div>
-      <div className="text-xs text-ink-600 mt-1">{subtitle}</div>
+      <MathBlock className="text-sm text-ink-900 leading-relaxed">{r.problemPrompt}</MathBlock>
+      <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+        <Field label="Correct" value={r.correctAnswer} tone="muted" />
+        <Field label="Your answer" value={r.yourAnswer ?? "—"} tone={r.youCorrect ? "good" : "bad"} />
+        <Field label="Opponent" value={r.opponentAnswer ?? "—"} tone={r.opponentCorrect ? "good" : "bad"} />
+      </div>
     </div>
   );
 }
 
-function Side({ username, label, correct, accuracy, timeMs, answer, faster, winner, isSelf = false }: {
-  username: string;
-  label: string;
-  correct: boolean;
-  accuracy: number;
-  timeMs: number | null;
-  answer: string | null;
-  faster: boolean;
-  winner: boolean;
-  isSelf?: boolean;
-}) {
+function Field({ label, value, tone }: { label: string; value: string; tone: "good" | "bad" | "muted" }) {
+  const color = tone === "good" ? "text-good" : tone === "bad" ? "text-bad" : "text-ink-700";
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-2">
-        <Avatar username={username} size="sm" self={isSelf} />
-        <div className="text-[10px] uppercase tracking-widest text-ink-600">{label}</div>
-        <div className="ml-auto flex gap-1">
-          {winner && <span className="chip-good">Won</span>}
-          {faster && <span className="chip-clay">Fastest</span>}
-        </div>
-      </div>
-      <div className={`font-medium ${correct ? "text-good" : "text-bad"}`}>{correct ? "Correct" : "Incorrect"}</div>
-      <div className="text-ink-700 mt-1">Accuracy <span className="text-ink-950 tabular-nums">{Math.round(accuracy * 100)}%</span></div>
-      <div className="text-ink-700">
-        Time{" "}
-        <span className={`tabular-nums font-semibold ${faster ? "text-clay" : "text-ink-950"}`}>
-          {timeMs === null ? "—" : `${(timeMs / 1000).toFixed(2)}s`}
-        </span>
-      </div>
-      <div className="text-ink-500 text-xs mt-1 break-all">{answer ? <>Answer: <span className="text-ink-800">{answer}</span></> : <em>none</em>}</div>
+    <div className="card-quiet p-2">
+      <div className="text-[10px] uppercase tracking-widest text-ink-500">{label}</div>
+      <div className={`text-sm break-all ${color}`}>{value}</div>
     </div>
   );
 }

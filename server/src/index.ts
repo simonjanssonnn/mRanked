@@ -36,12 +36,12 @@ async function main() {
   }
   await app.register(cookie);
 
-  app.get("/health", async () => ({ ok: true }));
+  app.get("/api/health", async () => ({ ok: true }));
 
-  await app.register(authRoutes);
-  await app.register(profileRoutes);
-  await app.register(leaderboardRoutes);
-  await app.register(practiceRoutes);
+  await app.register(authRoutes, { prefix: "/api" });
+  await app.register(profileRoutes, { prefix: "/api" });
+  await app.register(leaderboardRoutes, { prefix: "/api" });
+  await app.register(practiceRoutes, { prefix: "/api" });
 
   // Serve built client (production / single-origin deploys like Replit).
   if (HAS_CLIENT_BUILD) {
@@ -49,17 +49,14 @@ async function main() {
       root: CLIENT_DIST,
       prefix: "/",
     });
-    // SPA fallback: any unmatched non-API route returns index.html
+    // SPA fallback: any unmatched non-API route returns index.html.
+    // /api/* and /socket.io/* are the only server-owned namespaces; everything
+    // else is a client-side route and must hand back index.html so refresh works.
     app.setNotFoundHandler((req, reply) => {
       const url = req.url;
-      const isApi =
-        url.startsWith("/auth/") ||
-        url.startsWith("/me/") ||
-        url.startsWith("/leaderboard") ||
-        url.startsWith("/practice/") ||
-        url.startsWith("/socket.io/") ||
-        url.startsWith("/health");
-      if (isApi) return reply.code(404).send({ error: "not_found" });
+      if (url.startsWith("/api/") || url.startsWith("/socket.io/")) {
+        return reply.code(404).send({ error: "not_found" });
+      }
       return reply.sendFile("index.html");
     });
     app.log.info(`Serving client from ${CLIENT_DIST}`);
