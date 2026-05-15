@@ -15,6 +15,8 @@ type LobbyState = {
   roundEnded: LobbyRoundEnded | null;
   complete: LobbyComplete | null;
   joinError: string | null;
+  // Surfaced error from any lobby:error event so the UI can display it.
+  roomError: { code: string; message?: string } | null;
 
   setView: (v: LobbyView | null) => void;
   setCountdown: (n: number | null) => void;
@@ -23,6 +25,7 @@ type LobbyState = {
   setRoundEnded: (r: LobbyRoundEnded | null) => void;
   setComplete: (c: LobbyComplete | null) => void;
   setJoinError: (msg: string | null) => void;
+  setRoomError: (err: { code: string; message?: string } | null) => void;
   // Called when a new round is about to begin — clears the prior round's
   // problem/roundStartedAt so the countdown screen renders cleanly.
   prepRound: () => void;
@@ -38,11 +41,18 @@ const initial = {
   roundEnded: null,
   complete: null,
   joinError: null,
+  roomError: null,
 };
 
 export const useLobby = create<LobbyState>((set) => ({
   ...initial,
-  setView: (view) => set({ view }),
+  setView: (view) =>
+    set((s) => ({
+      view,
+      // A successful state broadcast after an error means the host fixed
+      // settings or the lobby moved on — clear the stale error.
+      roomError: view && view.state !== "waiting" ? null : s.roomError,
+    })),
   setCountdown: (countdown) => set({ countdown }),
   setProblem: (problem, roundStartedAt) =>
     set({
@@ -56,6 +66,7 @@ export const useLobby = create<LobbyState>((set) => ({
   setRoundEnded: (roundEnded) => set({ roundEnded, yourSubmittedAt: null }),
   setComplete: (complete) => set({ complete }),
   setJoinError: (joinError) => set({ joinError }),
+  setRoomError: (roomError) => set({ roomError }),
   prepRound: () =>
     set({
       problem: null,

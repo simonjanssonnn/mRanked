@@ -21,6 +21,8 @@ export function LobbyRoom() {
   const yourSubmittedAt = useLobby((s) => s.yourSubmittedAt);
   const roundEnded = useLobby((s) => s.roundEnded);
   const complete = useLobby((s) => s.complete);
+  const roomError = useLobby((s) => s.roomError);
+  const setRoomError = useLobby((s) => s.setRoomError);
   const resetRoom = useLobby((s) => s.resetRoom);
 
   const [answer, setAnswer] = useState("");
@@ -88,9 +90,30 @@ export function LobbyRoom() {
           <button onClick={leaveLobby} className="text-xs text-ink-500 hover:text-bad">Leave</button>
         </div>
 
+        {/* Server-side error toast — most commonly "Need at least 2 players"
+            or "No problems match the chosen tiers/categories". Dismissible. */}
+        {roomError && (
+          <div className="card border-bad/40 bg-bad/10 p-3 mb-4 flex items-start gap-3">
+            <span className="chip chip-bad shrink-0">Error</span>
+            <div className="flex-1 text-sm text-ink-900">
+              {roomError.message ?? roomError.code}
+            </div>
+            <button onClick={() => setRoomError(null)} className="text-ink-500 hover:text-ink-900 text-xs px-2">✕</button>
+          </div>
+        )}
+
         {/* Body switches on lobby state */}
         {view.state === "waiting" && (
           <WaitingRoom view={view} isHost={isHost} settings={view.settings} />
+        )}
+
+        {/* Brief moment between state="in_round" and the first countdown tick:
+            show a placeholder so the host knows clicking Start did something. */}
+        {view.state === "in_round" && countdown === null && !problem && !roundStartedAt && (
+          <div className="text-center py-16">
+            <div className="text-clay uppercase text-[10px] tracking-[0.3em] mb-2">Round {view.round} of {view.rounds}</div>
+            <div className="text-2xl font-medium text-ink-700">Starting…</div>
+          </div>
         )}
 
         {view.state === "in_round" && problem && roundStartedAt && (

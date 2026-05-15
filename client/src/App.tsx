@@ -148,6 +148,7 @@ function AuthedApp() {
     };
     const onLobbyError = (p: { code: string; message?: string }) => {
       console.warn("Lobby error:", p);
+      lobby().setRoomError(p);
     };
 
     socket.on("connect_error", onConnectError);

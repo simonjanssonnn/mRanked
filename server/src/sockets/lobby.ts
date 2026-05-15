@@ -215,15 +215,41 @@ export class LobbyManager {
 
   async start(userId: string): Promise<void> {
     const lobby = this.lobbyForUser(userId);
-    if (!lobby || lobby.hostId !== userId || lobby.state !== "waiting") return;
+    if (!lobby) {
+      console.warn(`[lobby] start refused: user ${userId} is not in any lobby`);
+      this.emitToUser(userId, "lobby:error", { code: "no_lobby", message: "You're not in a lobby." });
+      return;
+    }
+    if (lobby.hostId !== userId) {
+      console.warn(`[lobby ${lobby.code}] start refused: user ${userId} is not the host (hostId=${lobby.hostId})`);
+      this.emitToUser(userId, "lobby:error", { code: "not_host", message: "Only the host can start the match." });
+      return;
+    }
+    if (lobby.state !== "waiting") {
+      console.warn(`[lobby ${lobby.code}] start refused: state=${lobby.state}`);
+      this.emitToUser(userId, "lobby:error", { code: "bad_state", message: `Can't start while in ${lobby.state}.` });
+      return;
+    }
     if (lobby.players.size < 2) {
       this.emitToLobby(lobby, "lobby:error", { code: "need_two_players", message: "Need at least 2 players to start." });
       return;
     }
+    console.log(`[lobby ${lobby.code}] starting match — ${lobby.players.size} players, settings:`, lobby.settings);
     lobby.round = 0;
     for (const p of lobby.players.values()) p.score = 0;
     lobby.lastActivity = Date.now();
     await this.advanceRound(lobby);
+  }
+
+  // Used by start() error paths — sends to a single socket rather than the
+  // whole lobby room so non-host clients aren't spammed with errors meant for
+  // the host.
+  private emitToUser(userId: string, event: string, payload: unknown) {
+    for (const [, socket] of this.io.sockets.sockets) {
+      if ((socket.data as { userId?: string }).userId === userId) {
+        socket.emit(event, payload);
+      }
+    }
   }
 
   async handleAnswer(userId: string, answer: string): Promise<void> {
@@ -300,8 +326,21 @@ export class LobbyManager {
     }
     const problem = await this.pickProblem(lobby);
     if (!problem) {
-      this.emitToLobby(lobby, "lobby:error", { code: "no_problem", message: "Couldn't find a matching problem — try widening difficulty." });
-      this.completeMatch(lobby);
+      console.warn(
+        `[lobby ${lobby.code}] no matching problem — tiers=${JSON.stringify(lobby.settings.tiers)} categories=${JSON.stringify(lobby.settings.categories)} excluded=${lobby.problemsServed.length}`,
+      );
+      this.emitToLobby(lobby, "lobby:error", {
+        code: "no_problem",
+        message:
+          "No problems match the chosen tiers/categories. Try widening difficulty or clearing categories, then start again.",
+      });
+      // Bounce the lobby back to "waiting" so the host can fix settings and
+      // retry instead of getting stuck in "complete".
+      lobby.state = "waiting";
+      lobby.round = 0;
+      lobby.currentProblem = null;
+      lobby.roundStartedAt = null;
+      this.broadcastState(lobby);
       return;
     }
     lobby.currentProblem = problem;
