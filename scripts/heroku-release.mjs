@@ -18,9 +18,14 @@ if (!/[?&]sslmode=/.test(raw) && !/localhost|127\.0\.0\.1/.test(raw)) {
   process.env.DATABASE_URL = raw + (raw.includes("?") ? "&" : "?") + "sslmode=require";
 }
 
+// `db push` syncs the schema directly without requiring committed migration
+// files. Fine for this project — we use Prisma as a schema authority, not a
+// migration history. If you ever want proper versioned migrations later, run
+// `prisma migrate dev --name init` locally, commit the `prisma/migrations`
+// folder, and swap this for `prisma migrate deploy`.
 const result = spawnSync(
   process.platform === "win32" ? "npx.cmd" : "npx",
-  ["prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"],
+  ["prisma", "db", "push", "--schema", "prisma/schema.prisma", "--accept-data-loss"],
   { cwd: "server", stdio: "inherit", env: process.env },
 );
 
