@@ -22,6 +22,11 @@ model User {
   classicLosses   Int @default(0)
   classicDraws    Int @default(0)
 
+  // Anti-cheat: increments on impossibly-fast or otherwise sus submissions.
+  // Never exposed via /auth/me — server-side only. A high score is a signal
+  // to investigate or, in the future, shadow-rank the account.
+  suspicionScore  Int @default(0)
+
   // Customization, visible to other players.
   avatarColor    String @default("")
   avatarInitials String @default("")

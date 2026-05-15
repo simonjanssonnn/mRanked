@@ -13,6 +13,7 @@ import { pickProblemForDuel } from "../services/problems.js";
 import { grade } from "../lib/grading.js";
 import { applyDelta, computeDeltas, ELO_CONFIG, resolveOutcome, type RoundOutcome } from "../lib/elo.js";
 import { rankChange, tierForElo } from "../lib/ranks.js";
+import { flagSuspiciousSubmission, isImpossiblyFast } from "../lib/anticheat.js";
 
 export type PlayerSlot = {
   userId: string;
@@ -301,7 +302,7 @@ export class DuelManager {
       if (!r.submissions[otherSlot].submittedAt) {
         r.submissions[otherSlot] = { rawAnswer: "", submittedAt: Date.now() };
       }
-      this.gradeRound(r);
+      this.gradeRound(r, { a: d.a, b: d.b });
       r.resolved = true;
     }
     await this.resolveMatch(matchId, "forfeit");
@@ -315,7 +316,7 @@ export class DuelManager {
     round.resolved = true;
     if (round.timeoutHandle) { clearTimeout(round.timeoutHandle); round.timeoutHandle = null; }
 
-    this.gradeRound(round);
+    this.gradeRound(round, { a: d.a, b: d.b });
 
     const score = roundWinScore(d.rounds);
     const roundNumber = d.roundIndex + 1;
@@ -384,7 +385,7 @@ export class DuelManager {
     this.beginRoundCountdown(matchId);
   }
 
-  private gradeRound(round: RoundRecord) {
+  private gradeRound(round: RoundRecord, players?: { a: PlayerSlot; b: PlayerSlot }) {
     const startedAt = round.startedAt ?? Date.now();
     const aSub = round.submissions.a;
     const bSub = round.submissions.b;
@@ -406,6 +407,35 @@ export class DuelManager {
 
     const aTimeMs = aSub.submittedAt ? aSub.submittedAt - startedAt : Infinity;
     const bTimeMs = bSub.submittedAt ? bSub.submittedAt - startedAt : Infinity;
+
+    // Anti-cheat (Layer 1): a submission faster than the tier's human floor
+    // is force-marked incorrect so the cheater can't win the round on speed,
+    // and the user's suspicionScore is bumped in the background.
+    const tier = round.problem.tier;
+    if (aSub.submittedAt && isImpossiblyFast(tier, aTimeMs)) {
+      aGrade.correct = false;
+      aGrade.accuracy = 0;
+      if (players) {
+        void flagSuspiciousSubmission({
+          userId: players.a.userId,
+          tier,
+          timeMs: aTimeMs,
+          reason: "below_tier_floor",
+        });
+      }
+    }
+    if (bSub.submittedAt && isImpossiblyFast(tier, bTimeMs)) {
+      bGrade.correct = false;
+      bGrade.accuracy = 0;
+      if (players) {
+        void flagSuspiciousSubmission({
+          userId: players.b.userId,
+          tier,
+          timeMs: bTimeMs,
+          reason: "below_tier_floor",
+        });
+      }
+    }
 
     round.outcome = resolveOutcome(
       { submitted: !!aSub.submittedAt, correct: aGrade.correct, accuracy: aGrade.accuracy, timeMs: aTimeMs },

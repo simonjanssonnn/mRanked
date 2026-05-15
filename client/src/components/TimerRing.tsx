@@ -29,7 +29,7 @@ export function TimerRing({ totalSec, startedAt, frozen }: { totalSec: number; s
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={urgent ? "#F87171" : "#2DD4BF"}
+          stroke={urgent ? "#f28b82" : "#8ab4f8"}
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"

@@ -42,12 +42,12 @@ export function Logo({ size = 36, withWordmark = true, className = "" }: Props) 
         {/* Inner "M" stroke + chevron / rank tick */}
         <path
           d="M11 28 L11 14 L15 14 L20 22 L25 14 L29 14 L29 28 L25.5 28 L25.5 19.5 L21 26.5 L19 26.5 L14.5 19.5 L14.5 28 Z"
-          fill="#070C1A"
+          fill="#0e0e0e"
         />
         {/* Rank chevron under the M — signals “ranked” */}
         <path
           d="M14 31 L20 35 L26 31"
-          stroke="#070C1A"
+          stroke="#0e0e0e"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
