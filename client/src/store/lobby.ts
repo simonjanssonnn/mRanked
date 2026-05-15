@@ -23,6 +23,9 @@ type LobbyState = {
   setRoundEnded: (r: LobbyRoundEnded | null) => void;
   setComplete: (c: LobbyComplete | null) => void;
   setJoinError: (msg: string | null) => void;
+  // Called when a new round is about to begin — clears the prior round's
+  // problem/roundStartedAt so the countdown screen renders cleanly.
+  prepRound: () => void;
   resetRoom: () => void;
 };
 
@@ -53,5 +56,13 @@ export const useLobby = create<LobbyState>((set) => ({
   setRoundEnded: (roundEnded) => set({ roundEnded, yourSubmittedAt: null }),
   setComplete: (complete) => set({ complete }),
   setJoinError: (joinError) => set({ joinError }),
+  prepRound: () =>
+    set({
+      problem: null,
+      roundStartedAt: null,
+      yourSubmittedAt: null,
+      roundEnded: null,
+      countdown: null,
+    }),
   resetRoom: () => set(initial),
 }));

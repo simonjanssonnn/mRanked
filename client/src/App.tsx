@@ -130,6 +130,10 @@ function AuthedApp() {
     const onLobbyCountdown = (p: { secondsLeft: number }) => {
       lobby().setCountdown(p.secondsLeft);
     };
+    const onLobbyRoundStarting = (_p: { round: number; rounds: number }) => {
+      // Wipe prior-round state so the countdown screen renders cleanly.
+      lobby().prepRound();
+    };
     const onLobbyRoundStarted = (p: { round: number; rounds: number; problem: LobbyProblem; roundStartedAt: number }) => {
       lobby().setProblem(p.problem, p.roundStartedAt);
     };
@@ -161,6 +165,7 @@ function AuthedApp() {
     socket.on("lobby:join_failed", onLobbyJoinFailed);
     socket.on("lobby:state", onLobbyState);
     socket.on("lobby:countdown", onLobbyCountdown);
+    socket.on("lobby:round_starting", onLobbyRoundStarting);
     socket.on("lobby:round_started", onLobbyRoundStarted);
     socket.on("lobby:player_submitted", onLobbyPlayerSubmitted);
     socket.on("lobby:round_ended", onLobbyRoundEnded);
@@ -186,6 +191,7 @@ function AuthedApp() {
       socket.off("lobby:join_failed", onLobbyJoinFailed);
       socket.off("lobby:state", onLobbyState);
       socket.off("lobby:countdown", onLobbyCountdown);
+      socket.off("lobby:round_starting", onLobbyRoundStarting);
       socket.off("lobby:round_started", onLobbyRoundStarted);
       socket.off("lobby:player_submitted", onLobbyPlayerSubmitted);
       socket.off("lobby:round_ended", onLobbyRoundEnded);

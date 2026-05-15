@@ -306,9 +306,23 @@ export class LobbyManager {
     }
     lobby.currentProblem = problem;
     lobby.problemsServed.push(problem.id);
+    lobby.roundStartedAt = null;
     lobby.state = "in_round";
 
-    // Countdown then deliver.
+    // Tell every client: a new round is about to start, clear any stale
+    // problem / roundStartedAt left over from the previous round. This event
+    // also gives the client a visible "countdown is coming" trigger so it can
+    // render the countdown placeholder immediately.
+    this.emitToLobby(lobby, "lobby:round_starting", {
+      round: lobby.round,
+      rounds: lobby.settings.rounds,
+    });
+    // Broadcast new lobby state right away so the client transitions into the
+    // in_round view (and the countdown UI) without waiting for the countdown
+    // to finish.
+    this.broadcastState(lobby);
+
+    // Countdown ticks.
     for (let s = COUNTDOWN_SECONDS; s >= 1; s--) {
       const secondsLeft = s;
       setTimeout(() => {
