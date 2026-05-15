@@ -1,0 +1,152 @@
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { useAuth } from "./store/auth";
+import { useGame } from "./store/game";
+import { disconnectSocket, getSocket } from "./lib/socket";
+import type { MatchFound, MatchQuestion, MatchResult } from "./lib/types";
+import { Login } from "./pages/Login";
+import { Home } from "./pages/Home";
+import { Queue } from "./pages/Queue";
+import { Duel } from "./pages/Duel";
+import { Result } from "./pages/Result";
+import { Profile } from "./pages/Profile";
+import { Ranks } from "./pages/Ranks";
+import { Leaderboard } from "./pages/Leaderboard";
+import { Settings } from "./pages/Settings";
+import { Practice } from "./pages/Practice";
+
+export default function App() {
+  const { user, loading, init } = useAuth();
+
+  useEffect(() => {
+    void init();
+  }, [init]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-ink-500">
+        <div className="animate-pulse">Loading…</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  return <AuthedApp />;
+}
+
+function AuthedApp() {
+  const navigate = useNavigate();
+  const setUser = useAuth((s) => s.setUser);
+
+  useEffect(() => {
+    const socket = getSocket();
+    const game = useGame.getState;
+
+    const onConnectError = (err: Error) => console.error("Socket connect_error:", err.message);
+    const onQueueWaiting = (p: { searchRange: number }) => {
+      game().setPhase("queuing");
+      game().setSearchRange(p.searchRange);
+    };
+    const onQueueLeft = () => {
+      if (game().phase === "queuing") game().setPhase("idle");
+    };
+    const onMatchFound = (p: MatchFound) => {
+      // Reset transient duel state from any prior match so we start clean.
+      game().reset();
+      game().setMatch(p);
+      game().setPhase("match_found");
+      navigate("/duel", { replace: true });
+    };
+    const onMatchCountdown = (p: { secondsLeft: number }) => {
+      game().setCountdown(p.secondsLeft);
+      game().setPhase("countdown");
+    };
+    const onMatchQuestion = (p: MatchQuestion) => {
+      game().setQuestion(p);
+      game().setPhase("in_duel");
+      game().setCountdown(null);
+    };
+    const onOpponentSubmitted = () => game().markOpponentSubmitted();
+    const onMatchResult = (p: MatchResult) => {
+      game().setResult(p);
+      game().setPhase("result");
+      // Refresh local user ELO + stats from the result packet.
+      const cur = useAuth.getState().user;
+      if (cur) {
+        const win = p.result === "win" ? 1 : 0;
+        const loss = p.result === "loss" ? 1 : 0;
+        const draw = p.result === "draw" ? 1 : 0;
+        setUser({
+          ...cur,
+          classicElo: p.newElo,
+          classicMatches: cur.classicMatches + 1,
+          classicWins: cur.classicWins + win,
+          classicLosses: cur.classicLosses + loss,
+          classicDraws: cur.classicDraws + draw,
+        });
+      }
+      navigate("/result", { replace: true });
+    };
+    const onMatchAborted = () => {
+      game().reset();
+      navigate("/", { replace: true });
+    };
+    const onServerError = (e: { code: string; message?: string }) => console.warn("Server error:", e);
+
+    socket.on("connect_error", onConnectError);
+    socket.on("queue:waiting", onQueueWaiting);
+    socket.on("queue:left", onQueueLeft);
+    socket.on("match:found", onMatchFound);
+    socket.on("match:countdown", onMatchCountdown);
+    socket.on("match:question", onMatchQuestion);
+    socket.on("match:opponentSubmitted", onOpponentSubmitted);
+    socket.on("match:result", onMatchResult);
+    socket.on("match:aborted", onMatchAborted);
+    socket.on("error", onServerError);
+
+    return () => {
+      // Targeted .off() — do NOT call removeAllListeners, that nukes socket.io
+      // internals and breaks reconnect/handshake.
+      socket.off("connect_error", onConnectError);
+      socket.off("queue:waiting", onQueueWaiting);
+      socket.off("queue:left", onQueueLeft);
+      socket.off("match:found", onMatchFound);
+      socket.off("match:countdown", onMatchCountdown);
+      socket.off("match:question", onMatchQuestion);
+      socket.off("match:opponentSubmitted", onOpponentSubmitted);
+      socket.off("match:result", onMatchResult);
+      socket.off("match:aborted", onMatchAborted);
+      socket.off("error", onServerError);
+    };
+  }, [navigate, setUser]);
+
+  // Disconnect socket when user logs out
+  useEffect(() => {
+    return () => {
+      if (!useAuth.getState().user) disconnectSocket();
+    };
+  }, []);
+
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/queue" element={<Queue />} />
+      <Route path="/duel" element={<Duel />} />
+      <Route path="/result" element={<Result />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/ranks" element={<Ranks />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/practice" element={<Practice />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}

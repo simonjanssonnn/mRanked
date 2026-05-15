@@ -1,0 +1,101 @@
+// Math Ranked — data model (SQLite for MVP, swap to postgresql later)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  classicElo      Int @default(1000)
+  classicPeakElo  Int @default(1000) // highest ELO ever — gates which titles are available
+  classicMatches  Int @default(0)
+  classicWins     Int @default(0)
+  classicLosses   Int @default(0)
+  classicDraws    Int @default(0)
+
+  // Customization, visible to other players.
+  avatarColor    String @default("")
+  avatarInitials String @default("")
+  avatarImage    String @default("") // data URL of uploaded picture (kept small / downscaled client-side)
+  equippedTitle  String @default("") // see lib/titles.ts for catalog
+
+  matchesA   Match[]      @relation("MatchPlayerA")
+  matchesB   Match[]      @relation("MatchPlayerB")
+  eloHistory EloHistory[]
+}
+
+// Problem catalog. All MVP problems are mode=classic.
+model Problem {
+  id               String   @id @default(cuid())
+  mode             String   // "classic" | "swedish"
+  category         String   // algebra, geometry, ...
+  tier             String   // Initiate, Bronze, Silver, ...
+  difficultyElo    Int
+  prompt           String   // LaTeX-enabled
+  answerType       String   // "numeric" | "multiple_choice"
+  correctAnswer    String   // canonical (stringified)
+  acceptableForms  String?  // JSON array of equivalent strings
+  tolerance        Float    @default(0)   // for numeric
+  options          String?  // JSON array for multiple_choice
+  solution         String   // worked solution, LaTeX
+  timeLimitSeconds Int
+  calculatorAllowed Boolean @default(false)
+  language         String   @default("en")
+
+  timesServed  Int   @default(0)
+  timesSolved  Int   @default(0)
+  avgTimeMs    Float @default(0)
+  avgAccuracy  Float @default(0)
+}
+
+model Match {
+  id           String   @id @default(cuid())
+  mode         String
+  problemId    String
+  playerAId    String
+  playerBId    String
+
+  playerA      User     @relation("MatchPlayerA", fields: [playerAId], references: [id])
+  playerB      User     @relation("MatchPlayerB", fields: [playerBId], references: [id])
+
+  startedAt    DateTime @default(now())
+  endedAt      DateTime?
+
+  aAnswer      String?
+  bAnswer      String?
+  aAccuracy    Float?
+  bAccuracy    Float?
+  aTimeMs      Int?
+  bTimeMs      Int?
+
+  aEloBefore   Int
+  bEloBefore   Int
+  aEloDelta    Int?
+  bEloDelta    Int?
+
+  winnerId     String?  // null = draw
+  status       String   @default("in_progress") // in_progress | completed | aborted
+}
+
+model EloHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  mode      String
+  matchId   String?
+  eloBefore Int
+  eloAfter  Int
+  delta     Int
+  createdAt DateTime @default(now())
+
+  @@index([userId, mode, createdAt])
+}

@@ -1,0 +1,14 @@
+{
+  "name": "math-ranked",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "db:push": "cd server && npx prisma db push --skip-generate --accept-data-loss && npx prisma generate",
+    "seed": "cd server && npm run seed",
+    "build:client": "cd client && npm run build",
+    "setup": "npm run install:all && npm run db:push && npm run seed && npm run build:client",
+    "start": "cd server && NODE_ENV=production npm run start",
+    "deploy:replit": "npm run setup && npm run start"
+  }
+}
