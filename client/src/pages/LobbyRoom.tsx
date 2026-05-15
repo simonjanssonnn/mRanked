@@ -201,17 +201,20 @@ function SettingsBlock({ settings, editable, onChange, toggle }: {
       </div>
       <div>
         <div className="flex items-baseline justify-between mb-2">
-          <div className="text-sm text-ink-700">Seconds per round</div>
-          <div className="font-medium tabular-nums">{settings.timeLimitSec}s</div>
+          <div className="text-sm text-ink-700">Time per round</div>
+          <div className="font-medium tabular-nums">{formatDuration(settings.timeLimitSec)}</div>
         </div>
         {editable ? (
-          <input type="range" min={15} max={180} step={5} value={settings.timeLimitSec}
+          <input type="range" min={15} max={1800} step={5} value={Math.min(1800, settings.timeLimitSec)}
             onChange={(e) => onChange({ timeLimitSec: parseInt(e.target.value, 10) })}
             className="w-full accent-clay" />
         ) : (
           <div className="h-1.5 rounded-full bg-cream-200">
-            <div className="h-full rounded-full bg-clay" style={{ width: `${(settings.timeLimitSec / 180) * 100}%` }} />
+            <div className="h-full rounded-full bg-clay" style={{ width: `${Math.min(100, (settings.timeLimitSec / 1800) * 100)}%` }} />
           </div>
+        )}
+        {settings.timeLimitSec > 1800 && (
+          <div className="text-[10px] text-ink-500 mt-1">Slider tops out at 30 min — current value: {formatDuration(settings.timeLimitSec)}. Recreate the lobby to set hours.</div>
         )}
       </div>
       <div>
@@ -236,6 +239,20 @@ function SettingsBlock({ settings, editable, onChange, toggle }: {
       </div>
     </div>
   );
+}
+
+function formatDuration(totalSec: number): string {
+  if (totalSec >= 3600) {
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.round((totalSec % 3600) / 60);
+    return m ? `${h}h ${m}m` : `${h}h`;
+  }
+  if (totalSec >= 60) {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return s ? `${m}m ${s}s` : `${m}m`;
+  }
+  return `${totalSec}s`;
 }
 
 function PlayerTile({ player, isHost }: { player: LobbyPlayer; isHost: boolean }) {

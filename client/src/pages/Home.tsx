@@ -3,13 +3,12 @@ import { motion } from "framer-motion";
 import { useAuth } from "../store/auth";
 import { useGame } from "../store/game";
 import { getSocket } from "../lib/socket";
-import { Avatar } from "../components/Avatar";
 import { Logo } from "../components/Logo";
-import { TitleChip } from "../components/TitleChip";
+import { UserMenu } from "../components/UserMenu";
 import { CLASSIC_TIERS, TIER_COLORS, tierForElo } from "../lib/ranks";
 
 export function Home() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const game = useGame();
   const navigate = useNavigate();
 
@@ -41,22 +40,7 @@ export function Home() {
         >
           <Logo />
         </button>
-        <button
-          onClick={() => navigate("/profile")}
-          className="group flex items-center gap-3 rounded-full pl-3 pr-1.5 py-1.5 border border-cream-200/60 hover:border-clay/40 hover:bg-cream-100/40 transition-colors"
-          aria-label="Open profile"
-        >
-          <div className="text-right hidden sm:block">
-            <div className="text-sm font-semibold text-ink-950 leading-tight flex items-center gap-1.5">
-              @{user.username}
-              <TitleChip titleId={user.equippedTitle} size="xs" />
-            </div>
-            <div className="text-[10px] uppercase tracking-widest text-ink-500 tabular-nums">
-              {tier.name} · {user.classicElo}
-            </div>
-          </div>
-          <Avatar username={user.username} size="md" self ring />
-        </button>
+        <UserMenu />
       </header>
 
       <main className="max-w-2xl mx-auto px-6 pt-12 pb-24">
@@ -127,14 +111,6 @@ export function Home() {
           <NavTile icon={IconGear} title="Settings" sub="Avatar, title, prefs" onClick={() => navigate("/settings")} />
         </div>
 
-        <div className="mt-6 flex justify-center">
-          <button
-            onClick={() => logout()}
-            className="text-xs uppercase tracking-widest text-ink-500 hover:text-bad transition-colors px-3 py-1.5"
-          >
-            Log out
-          </button>
-        </div>
       </main>
     </div>
   );

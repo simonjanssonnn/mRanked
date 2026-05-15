@@ -205,9 +205,10 @@ export class LobbyManager {
     const lobby = this.lobbyForUser(userId);
     if (!lobby || lobby.hostId !== userId || lobby.state !== "waiting") return;
     lobby.settings = { ...lobby.settings, ...patch };
-    // Clamp to sane ranges.
+    // Clamp to sane ranges. Max 2 hours per round — Olympiad-tier problems
+    // genuinely need that long; anything beyond would just be a memory leak.
     lobby.settings.rounds = Math.max(1, Math.min(15, Math.floor(lobby.settings.rounds)));
-    lobby.settings.timeLimitSec = Math.max(15, Math.min(180, Math.floor(lobby.settings.timeLimitSec)));
+    lobby.settings.timeLimitSec = Math.max(15, Math.min(7200, Math.floor(lobby.settings.timeLimitSec)));
     lobby.lastActivity = Date.now();
     this.broadcastState(lobby);
   }

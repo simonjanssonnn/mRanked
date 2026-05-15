@@ -10,7 +10,7 @@ import type { User } from "../lib/types";
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB hard cap
 
-type Tab = "profile" | "preferences" | "practice";
+type Tab = "profile" | "preferences";
 
 export function Settings() {
   const user = useAuth((s) => s.user);
@@ -116,7 +116,6 @@ export function Settings() {
         <div className="flex gap-1 mb-5 p-1 rounded-2xl bg-cream-100/40 border border-cream-200">
           <TabButton active={tab === "profile"} onClick={() => setTab("profile")} label="Profile" />
           <TabButton active={tab === "preferences"} onClick={() => setTab("preferences")} label="Preferences" />
-          <TabButton active={tab === "practice"} onClick={() => setTab("practice")} label="Practice" />
         </div>
 
         {tab === "profile" && (
@@ -266,23 +265,6 @@ export function Settings() {
                 ))}
               </div>
               <div className="text-xs text-ink-600 mt-2">Svenska kicks in once Swedish mode ships.</div>
-            </div>
-          </section>
-        )}
-
-        {tab === "practice" && (
-          <section className="card p-6">
-            <SectionHeader label="Practice difficulty" hint='"Auto" picks based on your current rating.' />
-            <div className="flex flex-wrap gap-2 mt-3">
-              {(["auto", "Initiate", "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Master", "Grandmaster"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => update("preferredTier", t)}
-                  className={`px-3 py-1.5 rounded-xl text-sm font-medium ${s.preferredTier === t ? "bg-clay text-cream-50" : "bg-cream-100 text-ink-700 hover:bg-cream-200"}`}
-                >
-                  {t}
-                </button>
-              ))}
             </div>
           </section>
         )}
