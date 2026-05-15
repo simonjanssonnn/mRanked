@@ -146,4 +146,4 @@ Migration takes ~1 hour:
 4. Set the same env vars, push the same code.
 5. Update DNS.
 
-Nothing in the codebase is Heroku-locked. .
+Nothing in the codebase is Heroku-locked.
