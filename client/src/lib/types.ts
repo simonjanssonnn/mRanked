@@ -100,6 +100,75 @@ export type HistoryPlayer = PublicProfile & {
   classicElo: number;
 };
 
+export type LobbySettings = {
+  rounds: number;
+  timeLimitSec: number;
+  tiers: string[];
+  categories: string[];
+};
+
+export type LobbyPlayer = {
+  userId: string;
+  username: string;
+  avatarColor: string;
+  avatarInitials: string;
+  avatarImage: string;
+  equippedTitle: string;
+  score: number;
+  submitted: boolean;
+  connected: boolean;
+};
+
+export type LobbyView = {
+  code: string;
+  hostId: string;
+  settings: LobbySettings;
+  state: "waiting" | "in_round" | "between_rounds" | "complete";
+  round: number;
+  rounds: number;
+  players: LobbyPlayer[];
+};
+
+export type LobbyProblem = {
+  id: string;
+  prompt: string;
+  answerType: "numeric" | "multiple_choice";
+  options?: string[];
+  timeLimitSec: number;
+  calculatorAllowed: boolean;
+  tier: string;
+};
+
+export type LobbyRoundEnded = {
+  round: number;
+  rounds: number;
+  correctAnswer: string;
+  solution: string;
+  players: Array<{
+    userId: string;
+    username: string;
+    answer: string | null;
+    correct: boolean;
+    timeMs: number | null;
+    pointsThisRound: number;
+    place: number | null;
+    score: number;
+  }>;
+};
+
+export type LobbyComplete = {
+  rounds: number;
+  final: Array<{
+    userId: string;
+    username: string;
+    avatarColor: string;
+    avatarInitials: string;
+    avatarImage: string;
+    equippedTitle: string;
+    score: number;
+  }>;
+};
+
 export type HistoryResponse = {
   matches: Array<{
     id: string;

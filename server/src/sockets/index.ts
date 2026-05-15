@@ -3,6 +3,7 @@ import { prisma } from "../lib/db.js";
 import { COOKIE_NAME, verifyToken } from "../lib/auth.js";
 import { Matchmaker, type QueueEntry } from "./matchmaker.js";
 import { DuelManager } from "./duel.js";
+import { LobbyManager, type LobbySettings } from "./lobby.js";
 import { tierForElo } from "../lib/ranks.js";
 
 function parseCookie(header: string | undefined, name: string): string | null {
@@ -19,6 +20,7 @@ function parseCookie(header: string | undefined, name: string): string | null {
 
 export function registerSocketGateway(io: Server) {
   const duelManager = new DuelManager(io);
+  const lobbyManager = new LobbyManager(io);
   const matchmaker = new Matchmaker(async (a, b) => {
     const [userA, userB] = await Promise.all([
       prisma.user.findUnique({ where: { id: a.userId } }),
@@ -80,6 +82,7 @@ export function registerSocketGateway(io: Server) {
     const username = (socket.data as { username?: string }).username!;
 
     duelManager.handleReconnect(userId, socket.id);
+    lobbyManager.handleReconnect(userId, socket.id);
 
     socket.on("queue:join", async (payload: { mode?: string }) => {
       const mode = payload?.mode ?? "classic";
@@ -122,9 +125,73 @@ export function registerSocketGateway(io: Server) {
       duelManager.handleForfeit(userId);
     });
 
+    // ────── Custom lobby (FFA "play with friends") ──────
+    socket.on("lobby:create", async (payload: { settings?: Partial<LobbySettings> }) => {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return;
+      const lobby = await lobbyManager.create({
+        host: {
+          userId: user.id,
+          username: user.username,
+          socketId: socket.id,
+          avatarColor: user.avatarColor,
+          avatarInitials: user.avatarInitials,
+          avatarImage: user.avatarImage,
+          equippedTitle: user.equippedTitle,
+          score: 0,
+          submittedAt: null,
+          answer: null,
+          correct: false,
+        },
+        settings: payload?.settings,
+      });
+      socket.emit("lobby:created", { code: lobby.code });
+    });
+
+    socket.on("lobby:join", async (payload: { code: string }) => {
+      if (!payload?.code) return;
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return;
+      const result = lobbyManager.join(payload.code, {
+        userId: user.id,
+        username: user.username,
+        socketId: socket.id,
+        avatarColor: user.avatarColor,
+        avatarInitials: user.avatarInitials,
+        avatarImage: user.avatarImage,
+        equippedTitle: user.equippedTitle,
+        score: 0,
+        submittedAt: null,
+        answer: null,
+        correct: false,
+      });
+      if (!result.ok) {
+        socket.emit("lobby:join_failed", { reason: result.reason });
+      } else {
+        socket.emit("lobby:joined", { code: result.lobby.code });
+      }
+    });
+
+    socket.on("lobby:leave", () => lobbyManager.leave(userId));
+
+    socket.on("lobby:settings", (payload: { settings: Partial<LobbySettings> }) => {
+      if (!payload?.settings) return;
+      lobbyManager.updateSettings(userId, payload.settings);
+    });
+
+    socket.on("lobby:start", () => {
+      void lobbyManager.start(userId);
+    });
+
+    socket.on("lobby:answer", (payload: { answer: string }) => {
+      if (typeof payload?.answer !== "string") return;
+      void lobbyManager.handleAnswer(userId, payload.answer);
+    });
+
     socket.on("disconnect", () => {
       matchmaker.leave(userId);
       duelManager.handleDisconnect(userId);
+      lobbyManager.handleDisconnect(userId);
     });
   });
 

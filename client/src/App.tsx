@@ -2,8 +2,12 @@ import { useEffect } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useAuth } from "./store/auth";
 import { useGame } from "./store/game";
+import { useLobby } from "./store/lobby";
 import { disconnectSocket, getSocket } from "./lib/socket";
-import type { MatchFound, MatchQuestion, MatchResult, RoundResult } from "./lib/types";
+import type {
+  MatchFound, MatchQuestion, MatchResult, RoundResult,
+  LobbyView, LobbyProblem, LobbyRoundEnded, LobbyComplete,
+} from "./lib/types";
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { Queue } from "./pages/Queue";
@@ -14,6 +18,10 @@ import { Ranks } from "./pages/Ranks";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Settings } from "./pages/Settings";
 import { Practice } from "./pages/Practice";
+import { Modes } from "./pages/Modes";
+import { LobbyCreate } from "./pages/LobbyCreate";
+import { LobbyJoin } from "./pages/LobbyJoin";
+import { LobbyRoom } from "./pages/LobbyRoom";
 
 export default function App() {
   const { user, loading, init } = useAuth();
@@ -105,6 +113,39 @@ function AuthedApp() {
     };
     const onServerError = (e: { code: string; message?: string }) => console.warn("Server error:", e);
 
+    // ───── Lobby (custom FFA mode) listeners ─────
+    const lobby = useLobby.getState;
+    const onLobbyCreated = (p: { code: string }) => {
+      navigate(`/lobby/${p.code}`, { replace: true });
+    };
+    const onLobbyJoined = (p: { code: string }) => {
+      navigate(`/lobby/${p.code}`, { replace: true });
+    };
+    const onLobbyJoinFailed = (p: { reason: string }) => {
+      lobby().setJoinError(p.reason);
+    };
+    const onLobbyState = (p: LobbyView) => {
+      lobby().setView(p);
+    };
+    const onLobbyCountdown = (p: { secondsLeft: number }) => {
+      lobby().setCountdown(p.secondsLeft);
+    };
+    const onLobbyRoundStarted = (p: { round: number; rounds: number; problem: LobbyProblem; roundStartedAt: number }) => {
+      lobby().setProblem(p.problem, p.roundStartedAt);
+    };
+    const onLobbyPlayerSubmitted = (_p: { userId: string }) => {
+      // The lobby state broadcast handles full presence; this event is a hint.
+    };
+    const onLobbyRoundEnded = (p: LobbyRoundEnded) => {
+      lobby().setRoundEnded(p);
+    };
+    const onLobbyComplete = (p: LobbyComplete) => {
+      lobby().setComplete(p);
+    };
+    const onLobbyError = (p: { code: string; message?: string }) => {
+      console.warn("Lobby error:", p);
+    };
+
     socket.on("connect_error", onConnectError);
     socket.on("queue:waiting", onQueueWaiting);
     socket.on("queue:left", onQueueLeft);
@@ -115,6 +156,16 @@ function AuthedApp() {
     socket.on("match:opponentSubmitted", onOpponentSubmitted);
     socket.on("match:result", onMatchResult);
     socket.on("match:aborted", onMatchAborted);
+    socket.on("lobby:created", onLobbyCreated);
+    socket.on("lobby:joined", onLobbyJoined);
+    socket.on("lobby:join_failed", onLobbyJoinFailed);
+    socket.on("lobby:state", onLobbyState);
+    socket.on("lobby:countdown", onLobbyCountdown);
+    socket.on("lobby:round_started", onLobbyRoundStarted);
+    socket.on("lobby:player_submitted", onLobbyPlayerSubmitted);
+    socket.on("lobby:round_ended", onLobbyRoundEnded);
+    socket.on("lobby:complete", onLobbyComplete);
+    socket.on("lobby:error", onLobbyError);
     socket.on("error", onServerError);
 
     return () => {
@@ -130,6 +181,16 @@ function AuthedApp() {
       socket.off("match:opponentSubmitted", onOpponentSubmitted);
       socket.off("match:result", onMatchResult);
       socket.off("match:aborted", onMatchAborted);
+      socket.off("lobby:created", onLobbyCreated);
+      socket.off("lobby:joined", onLobbyJoined);
+      socket.off("lobby:join_failed", onLobbyJoinFailed);
+      socket.off("lobby:state", onLobbyState);
+      socket.off("lobby:countdown", onLobbyCountdown);
+      socket.off("lobby:round_started", onLobbyRoundStarted);
+      socket.off("lobby:player_submitted", onLobbyPlayerSubmitted);
+      socket.off("lobby:round_ended", onLobbyRoundEnded);
+      socket.off("lobby:complete", onLobbyComplete);
+      socket.off("lobby:error", onLobbyError);
       socket.off("error", onServerError);
     };
   }, [navigate, setUser]);
@@ -152,6 +213,10 @@ function AuthedApp() {
       <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/practice" element={<Practice />} />
+      <Route path="/modes" element={<Modes />} />
+      <Route path="/lobby/new" element={<LobbyCreate />} />
+      <Route path="/lobby/join" element={<LobbyJoin />} />
+      <Route path="/lobby/:code" element={<LobbyRoom />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

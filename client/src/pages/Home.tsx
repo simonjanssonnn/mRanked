@@ -24,7 +24,7 @@ export function Home() {
   const tierProgress = Math.max(0, Math.min(1, (user.classicElo - tierMin) / (tierMax - tierMin)));
   const nextTier = CLASSIC_TIERS[CLASSIC_TIERS.findIndex((t) => t.name === tier.name) + 1];
 
-  function play() {
+  function playRanked() {
     game.reset();
     game.setPhase("queuing");
     getSocket().emit("queue:join", { mode: "classic" });
@@ -97,7 +97,7 @@ export function Home() {
 
         {/* CTAs */}
         <motion.button
-          onClick={play}
+          onClick={playRanked}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="btn-primary w-full text-xl py-5 mt-6"
@@ -105,10 +105,10 @@ export function Home() {
           Play ranked · Best of 3
         </motion.button>
         <button
-          onClick={() => navigate("/practice")}
+          onClick={() => navigate("/modes")}
           className="btn-ghost w-full text-base py-3 mt-3"
         >
-          Practice (singleplayer)
+          More modes & custom lobbies →
         </button>
 
         {/* Stats grid */}

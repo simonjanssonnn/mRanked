@@ -4,59 +4,42 @@ type Props = {
   className?: string;
 };
 
-// Brand mark: a stylised "MR" monogram inside a chamfered hex, paired with the
-// "Math Ranked" wordmark. Pure SVG so it scales for the header, favicon, and
-// hero use without any extra assets.
-export function Logo({ size = 36, withWordmark = true, className = "" }: Props) {
-  const id = "logo-grad";
+// Gemini-style 4-pointed spark: four curved blades meeting at a soft centre,
+// blue→purple→pink gradient. Pure SVG, scales for header / favicon / hero.
+export function Logo({ size = 32, withWordmark = true, className = "" }: Props) {
+  const id = "logo-spark-grad";
   return (
     <div className={`inline-flex items-center gap-2.5 ${className}`}>
       <svg
         width={size}
         height={size}
-        viewBox="0 0 40 40"
+        viewBox="0 0 32 32"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden
       >
         <defs>
           <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#22D3EE" />
-            <stop offset="55%" stopColor="#67E8F9" />
-            <stop offset="100%" stopColor="#A78BFA" />
-          </linearGradient>
-          <linearGradient id={`${id}-inner`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
-            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+            <stop offset="0%" stopColor="#4285F4" />
+            <stop offset="45%" stopColor="#8AB4F8" />
+            <stop offset="80%" stopColor="#C58AF9" />
+            <stop offset="100%" stopColor="#F472B6" />
           </linearGradient>
         </defs>
-        {/* Outer chamfered hex */}
+        {/* Four cubic-curved petals tapering to the centre form the spark. */}
         <path
-          d="M11 3 L29 3 L37 11 L37 29 L29 37 L11 37 L3 29 L3 11 Z"
+          d="M16 1
+             C 17.6 9.4, 22.6 14.4, 31 16
+             C 22.6 17.6, 17.6 22.6, 16 31
+             C 14.4 22.6, 9.4 17.6, 1 16
+             C 9.4 14.4, 14.4 9.4, 16 1 Z"
           fill={`url(#${id})`}
-        />
-        {/* Glass highlight */}
-        <path
-          d="M11 3 L29 3 L37 11 L37 18 L3 18 L3 11 Z"
-          fill={`url(#${id}-inner)`}
-        />
-        {/* Inner "M" stroke + chevron / rank tick */}
-        <path
-          d="M11 28 L11 14 L15 14 L20 22 L25 14 L29 14 L29 28 L25.5 28 L25.5 19.5 L21 26.5 L19 26.5 L14.5 19.5 L14.5 28 Z"
-          fill="#0e0e0e"
-        />
-        {/* Rank chevron under the M — signals “ranked” */}
-        <path
-          d="M14 31 L20 35 L26 31"
-          stroke="#0e0e0e"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
         />
       </svg>
       {withWordmark && (
         <div className="leading-tight">
-          <div className="font-serif text-xl tracking-tight text-ink-950">Math <span className="text-clay">Ranked</span></div>
+          <div className="text-lg font-medium tracking-tight text-ink-950">
+            Math <span className="text-clay">Ranked</span>
+          </div>
         </div>
       )}
     </div>
