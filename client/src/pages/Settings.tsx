@@ -6,6 +6,7 @@ import { TitleChip } from "../components/TitleChip";
 import { TITLES, TITLE_STYLES, getTitle, isTitleUnlocked } from "../lib/titles";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/PageHeader";
+import type { User } from "../lib/types";
 
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB hard cap
 
@@ -23,7 +24,7 @@ export function Settings() {
 
   if (!user) return null;
 
-  async function syncToServer(body: Partial<Pick<typeof user, "avatarColor" | "avatarInitials" | "avatarImage" | "equippedTitle">>) {
+  async function syncToServer(body: Partial<Pick<User, "avatarColor" | "avatarInitials" | "avatarImage" | "equippedTitle">>) {
     if (!user) return;
     setSaveStatus("saving");
     try {
