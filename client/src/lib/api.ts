@@ -58,4 +58,11 @@ export const api = {
   practiceProblem: (elo: number) => request<{ problem: PracticeProblem }>(`/practice/problem?elo=${elo}`),
   practiceSubmit: (problemId: string, answer: string) =>
     request<PracticeResult>("/practice/submit", { method: "POST", body: JSON.stringify({ problemId, answer }) }),
+  problemCount: (tiers: string[], categories: string[]) => {
+    const params = new URLSearchParams();
+    if (tiers.length) params.set("tiers", tiers.join(","));
+    if (categories.length) params.set("categories", categories.join(","));
+    const qs = params.toString();
+    return request<{ count: number }>(`/problems/count${qs ? "?" + qs : ""}`);
+  },
 };

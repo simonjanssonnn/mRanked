@@ -10,7 +10,9 @@ import { authRoutes } from "./routes/auth.js";
 import { profileRoutes } from "./routes/profile.js";
 import { leaderboardRoutes } from "./routes/leaderboard.js";
 import { practiceRoutes } from "./routes/practice.js";
+import { problemsRoutes } from "./routes/problems.js";
 import { registerSocketGateway } from "./sockets/index.js";
+import { prisma } from "./lib/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +52,7 @@ async function main() {
   await app.register(profileRoutes, { prefix: "/api" });
   await app.register(leaderboardRoutes, { prefix: "/api" });
   await app.register(practiceRoutes, { prefix: "/api" });
+  await app.register(problemsRoutes, { prefix: "/api" });
 
   // Serve built client (production / single-origin deploys like Replit).
   if (HAS_CLIENT_BUILD) {
@@ -70,6 +73,27 @@ async function main() {
     app.log.info(`Serving client from ${CLIENT_DIST}`);
   } else {
     app.log.info("No client build found; running API-only. (Build the client to serve it from this server.)");
+  }
+
+  // Sanity check at boot — if the problem catalogue is empty, custom lobbies
+  // and ranked matches will both silently fail with "no problem found". Log a
+  // breakdown so the operator sees this in `heroku logs` immediately.
+  try {
+    const total = await prisma.problem.count({ where: { mode: "classic" } });
+    const byCategory = await prisma.problem.groupBy({
+      by: ["category"],
+      where: { mode: "classic" },
+      _count: { _all: true },
+    });
+    app.log.info(
+      `Problem catalogue: ${total} classic problems · ` +
+        byCategory.map((c) => `${c.category}=${c._count._all}`).join(", "),
+    );
+    if (total === 0) {
+      app.log.warn("Problem catalogue is EMPTY — run `npm run seed` or `heroku run \"cd server && npm run seed\"`.");
+    }
+  } catch (err) {
+    app.log.warn({ err }, "Couldn't query problem catalogue at boot (DB not reachable yet?)");
   }
 
   await app.listen({ port: PORT, host: "0.0.0.0" });
