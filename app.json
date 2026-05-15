@@ -1,0 +1,39 @@
+{
+  "name": "Math Ranked",
+  "description": "Real-time ranked math duels (Fastify + Socket.IO + React + Postgres).",
+  "repository": "https://github.com/your-user/mRanked",
+  "keywords": ["fastify", "socket.io", "react", "prisma", "postgres", "elo"],
+  "stack": "heroku-24",
+  "env": {
+    "NODE_ENV": {
+      "description": "Always 'production' on Heroku.",
+      "value": "production"
+    },
+    "NPM_CONFIG_PRODUCTION": {
+      "description": "Keep devDependencies (tsc, prisma CLI) available for build + release.",
+      "value": "false"
+    },
+    "JWT_SECRET": {
+      "description": "Long random string used to sign session cookies.",
+      "generator": "secret"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini",
+      "as": "DATABASE"
+    }
+  ],
+  "buildpacks": [
+    { "url": "heroku/nodejs" }
+  ],
+  "scripts": {
+    "postdeploy": "cd server && npm run seed"
+  }
+}

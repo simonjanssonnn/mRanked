@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { autoColor, autoInitials, loadSettings } from "../lib/settings";
 import type { PublicProfile } from "../lib/types";
+import { useAuth } from "../store/auth";
 
 type Size = "sm" | "md" | "lg" | "xl" | "2xl";
 const SIZES: Record<Size, string> = {
@@ -32,7 +33,13 @@ export function Avatar({
   /** When true, this avatar represents the logged-in user — pull from local settings (including uploaded image). */
   self?: boolean;
 }) {
-  const name = profile?.username ?? username ?? "?";
+  // For `self` avatars, the logged-in user from the auth store is the
+  // server-authoritative fallback: a fresh browser / private tab has empty
+  // localStorage but the user object still carries the avatar fields the
+  // server returned at login.
+  const authUser = useAuth((s) => s.user);
+  const selfProfile = self ? authUser : null;
+  const name = profile?.username ?? username ?? selfProfile?.username ?? "?";
 
   // Re-render when local settings change (the logged-in user just picked a new
   // color / uploaded a picture). Only attached for `self` avatars.
@@ -49,11 +56,18 @@ export function Avatar({
   }, [self]);
 
   const local = self ? loadSettings() : null;
-
-  // Explicit prop > local settings (self) > server profile (others) > auto.
-  const finalImage = imageUrl ?? (local?.avatarImage || profile?.avatarImage || "");
-  const finalColor = color ?? (local?.avatarColor || profile?.avatarColor || autoColor(name));
-  const finalInitials = initials ?? (local?.avatarInitials || profile?.avatarInitials || autoInitials(name));
+  // Resolution order:
+  //   explicit prop  >  local settings (self only)  >  server profile (passed in)
+  //   >  server user (auth store, self only)  >  auto-generated from name.
+  const finalImage =
+    imageUrl ??
+    (local?.avatarImage || profile?.avatarImage || selfProfile?.avatarImage || "");
+  const finalColor =
+    color ??
+    (local?.avatarColor || profile?.avatarColor || selfProfile?.avatarColor || autoColor(name));
+  const finalInitials =
+    initials ??
+    (local?.avatarInitials || profile?.avatarInitials || selfProfile?.avatarInitials || autoInitials(name));
 
   const ringClass = ring
     ? "ring-2 ring-clay/60 ring-offset-2 ring-offset-cream-50 shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)]"

@@ -1,6 +1,11 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
+// In production, refuse to boot without an explicit JWT_SECRET. A silent
+// fallback to "dev-only-secret" on Heroku would let anyone forge sessions.
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET must be set in production (e.g. `heroku config:set JWT_SECRET=...`).");
+}
 const SECRET = process.env.JWT_SECRET || "dev-only-secret";
 const TOKEN_TTL_SEC = 60 * 60 * 24 * 30; // 30 days
 

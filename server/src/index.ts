@@ -26,7 +26,15 @@ const CLIENT_DIST = path.resolve(__dirname, "../../client/dist");
 const HAS_CLIENT_BUILD = fs.existsSync(path.join(CLIENT_DIST, "index.html"));
 
 async function main() {
-  const app = Fastify({ logger: { level: "info" } });
+  const app = Fastify({
+    logger: { level: "info" },
+    // Heroku (and most managed PaaS) terminate TLS at a router and forward the
+    // request to the dyno over plain HTTP with `X-Forwarded-Proto: https`.
+    // Without `trustProxy`, Fastify treats the request as HTTP and the
+    // `secure: true` cookie we set on login gets silently dropped by the
+    // browser — manifests as "logged in but auth/me returns 401".
+    trustProxy: true,
+  });
 
   if (!IS_PROD) {
     await app.register(cors, {

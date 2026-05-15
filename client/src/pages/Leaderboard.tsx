@@ -5,6 +5,8 @@ import { Avatar } from "../components/Avatar";
 import { TIER_COLORS, tierForElo } from "../lib/ranks";
 import { PageHeader } from "../components/PageHeader";
 
+// Mirror the shape the server actually returns (avatar fields included), so
+// other players' uploaded pictures and chosen colours render here.
 type Entry = {
   id: string;
   username: string;
@@ -12,7 +14,10 @@ type Entry = {
   classicMatches: number;
   classicWins: number;
   classicLosses: number;
-  equippedTitle?: string;
+  avatarColor: string;
+  avatarInitials: string;
+  avatarImage: string;
+  equippedTitle: string;
 };
 
 export function Leaderboard() {
@@ -57,7 +62,7 @@ export function Leaderboard() {
             {me && myRank >= 3 && entries[myRank] && (
               <div className="card-quiet p-3 mb-4 flex items-center gap-3">
                 <div className="w-10 text-center font-bold tabular-nums text-ink-700">#{myRank + 1}</div>
-                <Avatar username={entries[myRank].username} size="md" self ring />
+                <Avatar username={entries[myRank].username} profile={entries[myRank]} size="md" self ring />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">@{entries[myRank].username}</div>
                   <div className="text-[10px] uppercase tracking-widest text-clay">Your position</div>
@@ -81,7 +86,7 @@ export function Leaderboard() {
                     <div className="w-10 text-right tabular-nums text-sm text-ink-600 font-semibold">
                       #{place}
                     </div>
-                    <Avatar username={e.username} size="md" self={isMe} />
+                    <Avatar username={e.username} profile={e} size="md" self={isMe} />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate flex items-center gap-2">
                         @{e.username}
@@ -135,7 +140,7 @@ function PodiumCard({ entry, place, height, isMe }: {
   return (
     <div className={`card ${accent} ${sizeClass} px-3 text-center relative ${isMe ? "bg-clay/5" : ""}`}>
       <div className={`absolute top-2 left-2 text-[10px] uppercase tracking-widest font-bold ${medalColor}`}>{medal}</div>
-      <Avatar username={entry.username} size={place === 1 ? "xl" : "lg"} self={isMe} ring={place === 1} />
+      <Avatar username={entry.username} profile={entry} size={place === 1 ? "xl" : "lg"} self={isMe} ring={place === 1} />
       <div className="mt-2 font-semibold truncate text-sm">@{entry.username}</div>
       <div className={`mt-1 inline-block px-1.5 py-0.5 rounded-full text-[10px] uppercase tracking-widest ${tc.bg} ${tc.text}`}>
         {t.name}

@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Ranked — UI Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Match the real Tailwind config so the preview looks like the app.
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cream: { 50: "#070C1A", 100: "#0F1A33", 200: "#1A2A4D", 300: "#243766" },
+              ink: {
+                950: "#FFFFFF", 900: "#F1F5FB", 800: "#D5DEEC",
+                700: "#A4B3CC", 600: "#7C8DA8", 500: "#5E7090",
+                400: "#42547A", 300: "#2C3E60",
+              },
+              clay: { DEFAULT: "#22D3EE", soft: "#67E8F9", dark: "#0891B2" },
+              good: "#34D399", bad: "#F87171", gold: "#FACC15", violet: "#A78BFA",
+            },
+            fontFamily: {
+              sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+              serif: ['"Source Serif 4"', 'ui-serif', 'Georgia', 'serif'],
+            },
+            boxShadow: {
+              soft: '0 1px 2px rgba(0,0,0,0.45), 0 12px 32px -12px rgba(0,0,0,0.55)',
+              ring: '0 0 0 1px rgba(34,211,238,0.45), 0 14px 40px -10px rgba(34,211,238,0.45)',
+              glow: '0 0 32px -4px rgba(34,211,238,0.55)',
+            },
+            borderRadius: { '2xl': '1.1rem', '3xl': '1.6rem' },
+          },
+        },
+      };
+    </script>
+    <style>
+      html { color-scheme: dark; background: #070C1A; }
+      body {
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+        color: #FFFFFF;
+        background-color: #070C1A;
+        background-image:
+          radial-gradient(ellipse 60% 40% at 50% -5%, rgba(34,211,238,0.18), transparent 65%),
+          radial-gradient(ellipse 40% 30% at 95% 100%, rgba(167,139,250,0.12), transparent 60%),
+          radial-gradient(ellipse 35% 28% at 5% 60%, rgba(34,211,238,0.07), transparent 60%);
+        background-attachment: fixed;
+      }
+      .font-serif { font-family: '"Source Serif 4"', ui-serif, Georgia, serif; }
+      .tabular-nums { font-variant-numeric: tabular-nums; }
+      .card {
+        border-radius: 1.1rem;
+        border: 1px solid rgba(26,42,77,0.8);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 12px 32px -12px rgba(0,0,0,0.55);
+        backdrop-filter: blur(4px);
+        background: linear-gradient(180deg, rgba(26,42,77,0.55) 0%, rgba(15,26,51,0.85) 100%);
+      }
+      .card-quiet {
+        border-radius: 1.1rem;
+        border: 1px solid rgba(26,42,77,0.6);
+        background: rgba(15,26,51,0.55);
+      }
+      .card-raised {
+        border-radius: 1.1rem;
+        border: 1px solid rgba(36,55,102,0.8);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 12px 32px -12px rgba(0,0,0,0.55);
+        background: linear-gradient(180deg, rgba(36,55,102,0.65) 0%, rgba(15,26,51,0.95) 100%);
+      }
+      .btn-primary {
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 0.75rem; font-weight: 600; color: #fff;
+        background: linear-gradient(180deg, #2DD4BF 0%, #0891B2 100%);
+        box-shadow: 0 0 0 1px rgba(34,211,238,0.45), 0 14px 40px -10px rgba(34,211,238,0.45);
+        transition: all 0.15s;
+      }
+      .btn-primary:hover { background: linear-gradient(180deg, #5EEAD4 0%, #14B8A6 100%); transform: translateY(-1px); }
+      .btn-ghost {
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 0.75rem; font-weight: 600;
+        background: #0F1A33; color: #FFF; border: 1px solid #1A2A4D;
+      }
+      .btn-ghost:hover { background: #1A2A4D; }
+      .chip {
+        display: inline-flex; align-items: center; gap: 0.375rem;
+        border-radius: 9999px; padding: 0.125rem 0.625rem;
+        font-size: 11px; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.05em;
+      }
+      .chip-clay { background: rgba(34,211,238,0.15); color: #22D3EE; }
+      .chip-good { background: rgba(52,211,153,0.15); color: #34D399; }
+      .chip-bad  { background: rgba(248,113,113,0.15); color: #F87171; }
+      .chip-mute { background: rgba(26,42,77,0.5); color: #A4B3CC; }
+      .text-shimmer {
+        background: linear-gradient(90deg, #22D3EE 0%, #A78BFA 50%, #22D3EE 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text; background-clip: text;
+        color: transparent;
+        animation: shimmer 2.5s linear infinite;
+      }
+      @keyframes shimmer {
+        0%   { background-position: -200% 0; }
+        100% { background-position:  200% 0; }
+      }
+      .divider { height: 1px; background: #1A2A4D; }
+      .nav-tab.active { background: #22D3EE; color: #070C1A; }
+      .scroll-margin { scroll-margin-top: 80px; }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Sticky navigator -->
+    <header class="sticky top-0 z-20 bg-cream-50/85 backdrop-blur border-b border-cream-200/60">
+      <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <!-- Logo -->
+          <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden>
+            <defs>
+              <linearGradient id="g0" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#22D3EE" />
+                <stop offset="55%" stop-color="#67E8F9" />
+                <stop offset="100%" stop-color="#A78BFA" />
+              </linearGradient>
+              <linearGradient id="g0-inner" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(255,255,255,0.18)" />
+                <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+              </linearGradient>
+            </defs>
+            <path d="M11 3 L29 3 L37 11 L37 29 L29 37 L11 37 L3 29 L3 11 Z" fill="url(#g0)"/>
+            <path d="M11 3 L29 3 L37 11 L37 18 L3 18 L3 11 Z" fill="url(#g0-inner)"/>
+            <path d="M11 28 L11 14 L15 14 L20 22 L25 14 L29 14 L29 28 L25.5 28 L25.5 19.5 L21 26.5 L19 26.5 L14.5 19.5 L14.5 28 Z" fill="#070C1A"/>
+            <path d="M14 31 L20 35 L26 31" stroke="#070C1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <div class="font-serif text-xl tracking-tight">Math <span class="text-clay">Ranked</span></div>
+          <span class="ml-2 chip chip-clay">UI preview</span>
+        </div>
+        <nav class="flex flex-wrap items-center gap-1 text-xs">
+          <a href="#home" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Home</a>
+          <a href="#queue" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Queue</a>
+          <a href="#duel" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Duel</a>
+          <a href="#round-over" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Round end</a>
+          <a href="#result" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Result</a>
+          <a href="#leaderboard" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Leaderboard</a>
+          <a href="#ranks" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Ranks</a>
+          <a href="#profile" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Profile</a>
+          <a href="#settings" class="nav-tab px-3 py-1.5 rounded-full text-ink-700 hover:text-ink-950 hover:bg-cream-100/40">Settings</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10 space-y-20">
+
+      <!-- ================== HOME ================== -->
+      <section id="home" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Home</h2>
+        <div class="card overflow-hidden">
+          <!-- Header strip -->
+          <div class="px-6 py-4 flex items-center justify-between border-b border-cream-200/60">
+            <button class="flex items-center gap-2.5">
+              <svg width="32" height="32" viewBox="0 0 40 40"><use href="#" /></svg>
+              <span class="font-serif text-xl tracking-tight">Math <span class="text-clay">Ranked</span></span>
+            </button>
+            <button class="group flex items-center gap-3 rounded-full pl-3 pr-1.5 py-1.5 border border-cream-200/60 hover:border-clay/40 hover:bg-cream-100/40 transition-colors">
+              <div class="text-right hidden sm:block">
+                <div class="text-sm font-semibold leading-tight flex items-center gap-1.5">
+                  @simon <span class="chip chip-clay">Title</span>
+                </div>
+                <div class="text-[10px] uppercase tracking-widest text-ink-500 tabular-nums">Gold · 1582</div>
+              </div>
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white"
+                   style="background:#6366F1; box-shadow: 0 0 24px -6px rgba(34,211,238,0.55); outline:2px solid rgba(34,211,238,0.6); outline-offset:2px;">SI</div>
+            </button>
+          </div>
+          <!-- Body -->
+          <div class="max-w-2xl mx-auto px-6 pt-10 pb-12">
+            <div class="card-raised p-8 text-center">
+              <div class="text-xs uppercase tracking-[0.3em] text-ink-600 mb-3 font-semibold">Classic rating</div>
+              <div class="font-serif text-8xl tabular-nums text-shimmer leading-none">1582</div>
+              <div class="inline-flex items-center gap-2 mt-4 px-3 py-1 rounded-full ring-1 ring-yellow-400/40 bg-yellow-400/10">
+                <span class="text-sm font-semibold text-yellow-300">Gold</span>
+              </div>
+              <div class="mt-6">
+                <div class="flex justify-between text-[10px] uppercase tracking-widest text-ink-500 mb-1.5 tabular-nums">
+                  <span>1400</span>
+                  <span>Next: Platinum</span>
+                  <span>1700</span>
+                </div>
+                <div class="h-2 rounded-full bg-cream-200 overflow-hidden">
+                  <div class="h-full" style="width:60%; background: linear-gradient(90deg,#22D3EE,#A78BFA);"></div>
+                </div>
+                <div class="text-xs text-ink-600 mt-2 tabular-nums">118 to Platinum</div>
+              </div>
+            </div>
+
+            <button class="btn-primary w-full text-xl py-5 mt-6">Play ranked · Best of 3</button>
+            <button class="btn-ghost w-full text-base py-3 mt-3">Practice (singleplayer)</button>
+
+            <div class="mt-10 grid grid-cols-4 gap-3">
+              <div class="card-quiet p-4 text-center">
+                <div class="text-2xl font-bold tabular-nums">42</div>
+                <div class="text-[10px] uppercase tracking-widest text-ink-600 mt-1">Matches</div>
+              </div>
+              <div class="card-quiet p-4 text-center">
+                <div class="text-2xl font-bold tabular-nums text-good">28</div>
+                <div class="text-[10px] uppercase tracking-widest text-ink-600 mt-1">Wins</div>
+              </div>
+              <div class="card-quiet p-4 text-center">
+                <div class="text-2xl font-bold tabular-nums text-bad">12</div>
+                <div class="text-[10px] uppercase tracking-widest text-ink-600 mt-1">Losses</div>
+              </div>
+              <div class="card-quiet p-4 text-center">
+                <div class="text-2xl font-bold tabular-nums">67%</div>
+                <div class="text-[10px] uppercase tracking-widest text-ink-600 mt-1">Win %</div>
+              </div>
+            </div>
+
+            <div class="mt-10 grid grid-cols-2 gap-3">
+              <button class="card p-4 flex items-center gap-3 text-left hover:border-clay/40 hover:shadow-glow transition-all">
+                <div class="w-10 h-10 rounded-xl bg-cream-200/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-clay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M17 3v18M7 8h10M7 13h10M7 18h10"/></svg>
+                </div>
+                <div><div class="font-semibold">Ranks</div><div class="text-xs text-ink-600">See the climb</div></div>
+              </button>
+              <button class="card p-4 flex items-center gap-3 text-left hover:border-clay/40 hover:shadow-glow transition-all">
+                <div class="w-10 h-10 rounded-xl bg-cream-200/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-clay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l4 4 5-7 5 7 4-4-2 12H5L3 7z"/><path d="M5 19h14"/></svg>
+                </div>
+                <div><div class="font-semibold">Leaderboard</div><div class="text-xs text-ink-600">Top players</div></div>
+              </button>
+              <button class="card p-4 flex items-center gap-3 text-left hover:border-clay/40 hover:shadow-glow transition-all">
+                <div class="w-10 h-10 rounded-xl bg-cream-200/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-clay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                </div>
+                <div><div class="font-semibold">Profile</div><div class="text-xs text-ink-600">History & stats</div></div>
+              </button>
+              <button class="card p-4 flex items-center gap-3 text-left hover:border-clay/40 hover:shadow-glow transition-all">
+                <div class="w-10 h-10 rounded-xl bg-cream-200/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-clay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1A2 2 0 1 1 4.3 17l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1A2 2 0 1 1 7 4.3l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+                </div>
+                <div><div class="font-semibold">Settings</div><div class="text-xs text-ink-600">Avatar, title, prefs</div></div>
+              </button>
+            </div>
+
+            <div class="mt-6 flex justify-center">
+              <button class="text-xs uppercase tracking-widest text-ink-500 hover:text-bad px-3 py-1.5">Log out</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== QUEUE ================== -->
+      <section id="queue" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Queue (finding opponent)</h2>
+        <div class="card p-12 flex flex-col items-center text-center">
+          <div class="text-clay uppercase text-xs tracking-[0.3em] mb-6 font-semibold">Finding an opponent</div>
+          <div class="relative h-44 w-44 mb-8">
+            <div class="absolute inset-0 rounded-full border border-clay/40 animate-ping"></div>
+            <div class="absolute inset-4 rounded-full bg-cream-100/60 border border-cream-300 flex items-center justify-center">
+              <div class="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold text-white"
+                   style="background:#6366F1; box-shadow: 0 0 24px -6px rgba(34,211,238,0.55); outline:2px solid rgba(34,211,238,0.6); outline-offset:2px;">SI</div>
+            </div>
+          </div>
+          <div class="font-serif text-3xl tabular-nums">1582</div>
+          <div class="text-sm text-clay font-medium">Gold</div>
+
+          <div class="mt-7 card-quiet p-4 w-full max-w-md">
+            <div class="flex items-center justify-between text-[10px] uppercase tracking-widest text-ink-500 mb-2">
+              <span>search range</span>
+              <span class="tabular-nums">±150</span>
+            </div>
+            <div class="relative h-2 rounded-full bg-cream-200 overflow-hidden">
+              <div class="absolute inset-y-0" style="left:0; right:0; background: linear-gradient(90deg, rgba(34,211,238,0.7), #22D3EE, rgba(167,139,250,0.7)); border-radius:999px;"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-ink-600 mt-2 tabular-nums">
+              <span>1432</span><span>1732</span>
+            </div>
+          </div>
+          <div class="mt-5 text-xs text-ink-600 tabular-nums">12s elapsed · widens every 2s</div>
+          <div class="mt-8 text-sm text-ink-700 italic">"Both correct? The faster submission wins."</div>
+          <button class="btn-ghost mt-10 px-8 py-2">Cancel</button>
+        </div>
+      </section>
+
+      <!-- ================== DUEL ================== -->
+      <section id="duel" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Duel — Round 2 of 3</h2>
+        <div class="card overflow-hidden">
+          <!-- Player strip -->
+          <div class="px-6 py-5 border-b border-cream-200 bg-cream-100/30">
+            <div class="flex items-center justify-between gap-4">
+              <!-- You -->
+              <div class="flex items-center gap-4">
+                <div class="w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold text-white"
+                     style="background:#6366F1; outline:2px solid rgba(34,211,238,0.6); outline-offset:2px; box-shadow:0 0 24px -6px rgba(34,211,238,0.55);">SI</div>
+                <div>
+                  <div class="font-semibold">@simon</div>
+                  <div class="text-xs text-ink-600 mt-1"><span class="text-clay font-medium">Gold</span> · <span class="tabular-nums font-semibold text-ink-800">1582</span></div>
+                  <div class="mt-2 flex items-center gap-2">
+                    <span class="chip chip-good">submitted</span>
+                    <span class="text-[10px] uppercase tracking-widest text-ink-500 tabular-nums">1 pt</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Center -->
+              <div class="flex flex-col items-center">
+                <div class="text-[10px] uppercase tracking-[0.3em] text-ink-500">Round</div>
+                <div class="text-xl font-serif font-bold tabular-nums">
+                  <span class="text-clay">2</span><span class="text-ink-400">/3</span>
+                </div>
+              </div>
+              <!-- Opponent -->
+              <div class="flex items-center gap-4 flex-row-reverse text-right">
+                <div class="w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold text-white" style="background:#DB2777;">AS</div>
+                <div>
+                  <div class="font-semibold">@aspen</div>
+                  <div class="text-xs text-ink-600 mt-1"><span class="text-clay font-medium">Gold</span> · <span class="tabular-nums font-semibold text-ink-800">1605</span></div>
+                  <div class="mt-2 flex items-center gap-2 justify-end">
+                    <span class="chip chip-mute">solving…</span>
+                    <span class="text-[10px] uppercase tracking-widest text-ink-500 tabular-nums">0 pts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-3 flex justify-end">
+              <button class="text-xs text-ink-500 hover:text-bad">Leave match</button>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="flex flex-col items-center px-6 py-10 gap-7">
+            <!-- Timer ring -->
+            <div class="relative" style="width:168px; height:168px;">
+              <svg width="168" height="168">
+                <circle cx="84" cy="84" r="79" stroke="rgba(244,248,252,0.08)" stroke-width="10" fill="none"/>
+                <circle cx="84" cy="84" r="79" stroke="#2DD4BF" stroke-width="10" fill="none"
+                        stroke-linecap="round" stroke-dasharray="496" stroke-dashoffset="124"
+                        transform="rotate(-90 84 84)"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <div class="text-5xl font-bold tabular-nums">28</div>
+                <div class="text-xs uppercase tracking-widest text-ink-500">seconds</div>
+              </div>
+            </div>
+
+            <div class="card-raised p-7 w-full max-w-2xl">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-[10px] uppercase tracking-[0.25em] text-clay font-bold">Round 2 · Problem</div>
+                <div class="text-[10px] uppercase tracking-[0.25em] text-ink-500 tabular-nums">Score 1 – 0</div>
+              </div>
+              <div class="text-2xl leading-relaxed">Solve for x: 3x² − 12x + 9 = 0</div>
+            </div>
+
+            <div class="card-quiet px-4 py-3 text-sm text-ink-700 max-w-2xl w-full">
+              <span class="chip chip-good mr-2">Locked in</span>
+              Waiting for opponent…
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== ROUND OVER ================== -->
+      <section id="round-over" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Round-over screen (between rounds)</h2>
+        <div class="card p-10 flex justify-center">
+          <div class="w-full max-w-md text-center">
+            <div class="text-[10px] uppercase tracking-[0.3em] text-ink-500 mb-2">Round 2 of 3</div>
+            <div class="font-serif text-6xl mb-3 text-good">Round won</div>
+            <div class="card p-5 mb-3">
+              <div class="text-[10px] uppercase tracking-widest text-clay font-semibold mb-1">Correct answer</div>
+              <div class="text-xl">x = 1 or x = 3</div>
+              <div class="grid grid-cols-2 gap-3 mt-4 text-left">
+                <div class="card-quiet p-2">
+                  <div class="text-[10px] uppercase tracking-widest text-ink-500 mb-1">You</div>
+                  <div class="text-sm text-good">Correct</div>
+                  <div class="text-xs text-ink-700 break-all">x=1, x=3</div>
+                  <div class="text-[11px] tabular-nums text-ink-600 mt-0.5">4.21s</div>
+                </div>
+                <div class="card-quiet p-2">
+                  <div class="text-[10px] uppercase tracking-widest text-ink-500 mb-1">@aspen</div>
+                  <div class="text-sm text-bad">Wrong</div>
+                  <div class="text-xs text-ink-700 break-all">x=3</div>
+                  <div class="text-[11px] tabular-nums text-ink-600 mt-0.5">5.88s</div>
+                </div>
+              </div>
+            </div>
+            <div class="text-sm text-ink-700 tabular-nums">
+              Score <span class="font-semibold">2 – 0</span>
+              <span class="text-ink-500"> · finalizing match…</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== RESULT ================== -->
+      <section id="result" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Match result (Victory · 2-1)</h2>
+        <div class="card overflow-hidden">
+          <div class="px-6 py-10 max-w-3xl mx-auto">
+            <div class="text-center mb-6">
+              <div class="text-xs uppercase tracking-[0.3em] mb-1 font-semibold text-good">Victory</div>
+              <div class="font-serif text-7xl tabular-nums leading-none text-good">+22</div>
+              <div class="mt-2 text-ink-700 text-sm">
+                New rating <span class="font-semibold text-ink-950 tabular-nums">1604</span> · Gold
+              </div>
+              <div class="text-xs text-ink-500 mt-2">You took 2 of 3 rounds</div>
+            </div>
+
+            <div class="card-raised p-5 mb-5">
+              <div class="grid grid-cols-3 items-center gap-3">
+                <div class="text-center">
+                  <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-lg font-bold text-white" style="background:#6366F1; outline:2px solid rgba(34,211,238,0.6); outline-offset:2px;">SI</div>
+                  <div class="mt-1 font-semibold">@simon</div>
+                  <div class="text-xs text-ink-600">Gold</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-[10px] uppercase tracking-[0.3em] text-ink-500 mb-1">Final score</div>
+                  <div class="font-serif text-5xl tabular-nums">
+                    <span class="text-good">2</span><span class="text-ink-400 mx-2">–</span><span class="text-ink-400">1</span>
+                  </div>
+                  <div class="text-[10px] uppercase tracking-widest text-ink-500 mt-1">Best of 3</div>
+                </div>
+                <div class="text-center">
+                  <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-lg font-bold text-white" style="background:#DB2777;">AS</div>
+                  <div class="mt-1 font-semibold">@aspen</div>
+                  <div class="text-xs text-ink-600">Gold</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-5 mb-5">
+              <div class="text-xs uppercase tracking-[0.25em] text-clay font-semibold mb-3">Round-by-round</div>
+              <div class="space-y-3">
+                <div class="border border-cream-200 rounded-xl p-3">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <div class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-good"></span>
+                      <span class="text-[10px] uppercase tracking-widest text-ink-500">Round 1</span>
+                      <span class="text-sm font-semibold text-good">Won</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs tabular-nums text-ink-700">
+                      <span>You 3.10s</span><span class="text-ink-400">·</span><span>@aspen 4.62s</span>
+                    </div>
+                  </div>
+                  <div class="text-sm">15% of 240</div>
+                  <div class="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Correct</div><div class="text-sm text-ink-700">36</div></div>
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Your answer</div><div class="text-sm text-good">36</div></div>
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Opponent</div><div class="text-sm text-good">36</div></div>
+                  </div>
+                </div>
+                <div class="border border-bad/40 rounded-xl p-3">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <div class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-bad"></span>
+                      <span class="text-[10px] uppercase tracking-widest text-ink-500">Round 2</span>
+                      <span class="text-sm font-semibold text-bad">Lost</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs tabular-nums text-ink-700">
+                      <span>You 9.12s</span><span class="text-ink-400">·</span><span>@aspen 6.55s</span>
+                    </div>
+                  </div>
+                  <div class="text-sm">∫ from 0 to π of sin(x) dx</div>
+                  <div class="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Correct</div><div class="text-sm text-ink-700">2</div></div>
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Your answer</div><div class="text-sm text-bad">0</div></div>
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Opponent</div><div class="text-sm text-good">2</div></div>
+                  </div>
+                </div>
+                <div class="border border-good/40 rounded-xl p-3">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <div class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-good"></span>
+                      <span class="text-[10px] uppercase tracking-widest text-ink-500">Round 3</span>
+                      <span class="text-sm font-semibold text-good">Won</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs tabular-nums text-ink-700">
+                      <span>You 4.21s</span><span class="text-ink-400">·</span><span>@aspen 5.88s</span>
+                    </div>
+                  </div>
+                  <div class="text-sm">Solve 3x² − 12x + 9 = 0</div>
+                  <div class="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Correct</div><div class="text-sm text-ink-700">x = 1 or 3</div></div>
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Your answer</div><div class="text-sm text-good">x=1, x=3</div></div>
+                    <div class="card-quiet p-2"><div class="text-[10px] uppercase tracking-widest text-ink-500">Opponent</div><div class="text-sm text-bad">x=3</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-6 mb-6">
+              <div class="text-xs uppercase tracking-[0.25em] text-clay font-semibold mb-2">Final round · solution</div>
+              <div class="text-2xl mb-4">x = 1 or x = 3</div>
+              <div class="text-ink-800 leading-relaxed">Divide by 3: x² − 4x + 3 = 0, factor (x−1)(x−3) = 0.</div>
+            </div>
+            <div class="flex gap-3">
+              <button class="btn-ghost flex-1 py-3">Home</button>
+              <button class="btn-primary flex-1 py-3">Play again</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== LEADERBOARD ================== -->
+      <section id="leaderboard" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Leaderboard</h2>
+        <div class="card overflow-hidden">
+          <div class="max-w-3xl mx-auto px-6 py-8">
+            <div class="text-[10px] uppercase tracking-[0.3em] text-ink-500 mb-3 text-center">Top of the ladder</div>
+            <div class="grid grid-cols-3 gap-3 items-end mb-8">
+              <!-- 2nd -->
+              <div class="card ring-2 ring-zinc-300/40 pt-5 pb-5 px-3 text-center relative">
+                <div class="absolute top-2 left-2 text-[10px] uppercase tracking-widest font-bold text-zinc-200">2nd</div>
+                <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-lg font-bold text-white" style="background:#DB2777;">AS</div>
+                <div class="mt-2 font-semibold text-sm">@aspen</div>
+                <div class="mt-1 inline-block px-1.5 py-0.5 rounded-full text-[10px] uppercase tracking-widest bg-fuchsia-400/10 text-fuchsia-300">Master</div>
+                <div class="mt-2 text-2xl font-bold tabular-nums">2455</div>
+              </div>
+              <!-- 1st -->
+              <div class="card ring-2 ring-yellow-400/60 shadow-glow pt-7 pb-6 px-3 text-center relative">
+                <div class="absolute top-2 left-2 text-[10px] uppercase tracking-widest font-bold text-yellow-300">1st</div>
+                <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-3xl font-bold text-white" style="background:#0EA5E9; outline:2px solid rgba(250,204,21,0.6); outline-offset:2px;">EU</div>
+                <div class="mt-2 font-semibold text-sm">@euler</div>
+                <div class="mt-1 inline-block px-1.5 py-0.5 rounded-full text-[10px] uppercase tracking-widest bg-rose-400/10 text-rose-300">Grandmaster</div>
+                <div class="mt-2 text-3xl font-bold tabular-nums">2812</div>
+              </div>
+              <!-- 3rd -->
+              <div class="card ring-2 ring-amber-700/40 pt-4 pb-4 px-3 text-center relative">
+                <div class="absolute top-2 left-2 text-[10px] uppercase tracking-widest font-bold text-amber-400">3rd</div>
+                <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center text-lg font-bold text-white" style="background:#10B981;">RA</div>
+                <div class="mt-2 font-semibold text-sm">@ramanujan</div>
+                <div class="mt-1 inline-block px-1.5 py-0.5 rounded-full text-[10px] uppercase tracking-widest bg-sky-400/10 text-sky-300">Diamond</div>
+                <div class="mt-2 text-2xl font-bold tabular-nums">2188</div>
+              </div>
+            </div>
+
+            <!-- Your position -->
+            <div class="card-quiet p-3 mb-4 flex items-center gap-3">
+              <div class="w-10 text-center font-bold tabular-nums text-ink-700">#14</div>
+              <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white" style="background:#6366F1; outline:2px solid rgba(34,211,238,0.6); outline-offset:2px;">SI</div>
+              <div class="flex-1">
+                <div class="text-sm font-semibold">@simon</div>
+                <div class="text-[10px] uppercase tracking-widest text-clay">Your position</div>
+              </div>
+              <div class="text-2xl font-bold tabular-nums text-clay">1582</div>
+            </div>
+
+            <div class="card divide-y divide-cream-200">
+              <!-- One row template repeated -->
+              <div class="px-4 py-3 flex items-center gap-4">
+                <div class="w-10 text-right tabular-nums text-sm text-ink-600 font-semibold">#4</div>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white" style="background:#F59E0B;">GA</div>
+                <div class="flex-1">
+                  <div class="font-medium">@gauss</div>
+                  <div class="text-xs flex items-center gap-2 mt-0.5">
+                    <span class="px-1.5 py-0.5 rounded-full bg-sky-400/10 text-sky-300">Diamond</span>
+                    <span class="text-ink-500 tabular-nums">128 matches</span>
+                    <span class="text-ink-500">·</span>
+                    <span class="tabular-nums text-good">94W</span>
+                    <span class="tabular-nums text-bad">34L</span>
+                  </div>
+                </div>
+                <div class="text-2xl font-bold tabular-nums">2103</div>
+              </div>
+              <div class="px-4 py-3 flex items-center gap-4">
+                <div class="w-10 text-right tabular-nums text-sm text-ink-600 font-semibold">#5</div>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white" style="background:#8B5CF6;">FE</div>
+                <div class="flex-1">
+                  <div class="font-medium">@fermat</div>
+                  <div class="text-xs flex items-center gap-2 mt-0.5">
+                    <span class="px-1.5 py-0.5 rounded-full bg-cyan-300/10 text-cyan-200">Platinum</span>
+                    <span class="text-ink-500 tabular-nums">86 matches</span>
+                    <span class="text-ink-500">·</span>
+                    <span class="tabular-nums text-good">58W</span>
+                    <span class="tabular-nums text-bad">28L</span>
+                  </div>
+                </div>
+                <div class="text-2xl font-bold tabular-nums">1944</div>
+              </div>
+              <div class="px-4 py-3 flex items-center gap-4 bg-clay/5 ring-1 ring-clay/30">
+                <div class="w-10 text-right tabular-nums text-sm text-ink-600 font-semibold">#14</div>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white" style="background:#6366F1; outline:2px solid rgba(34,211,238,0.6); outline-offset:2px;">SI</div>
+                <div class="flex-1">
+                  <div class="font-medium flex items-center gap-2">@simon <span class="chip chip-clay">You</span></div>
+                  <div class="text-xs flex items-center gap-2 mt-0.5">
+                    <span class="px-1.5 py-0.5 rounded-full bg-yellow-400/10 text-yellow-300">Gold</span>
+                    <span class="text-ink-500 tabular-nums">42 matches</span>
+                    <span class="text-ink-500">·</span>
+                    <span class="tabular-nums text-good">28W</span>
+                    <span class="tabular-nums text-bad">12L</span>
+                  </div>
+                </div>
+                <div class="text-2xl font-bold tabular-nums">1582</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== RANKS ================== -->
+      <section id="ranks" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Ranks</h2>
+        <div class="card overflow-hidden">
+          <div class="max-w-3xl mx-auto px-6 py-8">
+            <div class="card-raised p-6 mb-8">
+              <div class="flex items-center justify-between gap-6">
+                <div>
+                  <div class="text-[10px] uppercase tracking-[0.3em] text-ink-500">You are</div>
+                  <div class="font-serif text-5xl tabular-nums">1582</div>
+                  <div class="mt-1 inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full ring-1 ring-clay/40 bg-clay/10">
+                    <span class="text-sm font-semibold text-clay">Gold</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-[10px] uppercase tracking-widest text-ink-500">Peak</div>
+                  <div class="font-serif text-2xl tabular-nums">1612</div>
+                  <div class="text-xs text-ink-600 mt-1 tabular-nums">118 to next</div>
+                </div>
+              </div>
+              <div class="mt-5">
+                <div class="relative h-2 rounded-full bg-cream-200 overflow-hidden">
+                  <div class="absolute inset-y-0 left-0" style="width:43%; background: linear-gradient(90deg,#22D3EE,#A78BFA,#F87171);"></div>
+                </div>
+                <div class="flex justify-between text-[9px] uppercase tracking-widest text-ink-500 mt-1.5">
+                  <span>Ini</span><span>Bro</span><span>Sil</span>
+                  <span class="text-clay font-semibold">Gol</span>
+                  <span>Pla</span><span>Dia</span><span>Mas</span><span>Gra</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Tier card (highlighted = Gold) -->
+              <div class="card p-5 ring-2 ring-clay/40 shadow-glow">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl ring-2 ring-yellow-400/40 bg-yellow-400/10 flex items-center justify-center">
+                    <span class="font-serif text-xl font-bold text-yellow-300">G</span>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-lg font-semibold text-yellow-300">Gold</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest tabular-nums bg-yellow-400/10 text-yellow-300">1400–1699</span>
+                      <span class="chip chip-clay">You</span>
+                    </div>
+                    <div class="text-xs text-ink-600 mt-1">Algebra II, quadratics, geometry proofs, intro trigonometry</div>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <div class="h-1.5 rounded-full bg-cream-100 overflow-hidden"><div class="h-full bg-clay" style="width:60%"></div></div>
+                  <div class="text-[10px] tabular-nums text-ink-500 mt-1">60% through Gold</div>
+                </div>
+              </div>
+              <!-- A few sample tiers -->
+              <div class="card p-5">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl ring-2 ring-cyan-300/40 bg-cyan-300/10 flex items-center justify-center"><span class="font-serif text-xl font-bold text-cyan-200">P</span></div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2"><span class="text-lg font-semibold text-cyan-200">Platinum</span><span class="px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest bg-cyan-300/10 text-cyan-200">1700–1999</span></div>
+                    <div class="text-xs text-ink-600 mt-1">Precalculus, functions, sequences & series, logarithms</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card p-5">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl ring-2 ring-sky-400/40 bg-sky-400/10 flex items-center justify-center"><span class="font-serif text-xl font-bold text-sky-300">D</span></div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2"><span class="text-lg font-semibold text-sky-300">Diamond</span><span class="px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest bg-sky-400/10 text-sky-300">2000–2299</span></div>
+                    <div class="text-xs text-ink-600 mt-1">Single-variable calculus, advanced algebra, intro number theory</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card p-5">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl ring-2 ring-rose-400/50 bg-rose-400/10 flex items-center justify-center"><span class="font-serif text-xl font-bold text-rose-300">G</span></div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2"><span class="text-lg font-semibold text-rose-300">Grandmaster</span><span class="px-2 py-0.5 rounded-full text-[10px] uppercase tracking-widest bg-rose-400/10 text-rose-300">2600+</span></div>
+                    <div class="text-xs text-ink-600 mt-1">Olympiad-level (IMO/Putnam-style) multi-step problems</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== PROFILE ================== -->
+      <section id="profile" class="scroll-margin">
+        <h2 class="font-serif text-3xl mb-4">Profile</h2>
+        <div class="card overflow-hidden">
+          <div class="max-w-3xl mx-auto px-6 py-8">
+            <div class="card-raised p-6 mb-6">
+              <div class="flex items-start gap-5 flex-wrap">
+                <div class="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold text-white" style="background:#6366F1; outline:2px solid rgba(34,211,238,0.6); outline-offset:2px;">SI</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-serif text-3xl flex items-center gap-2 flex-wrap">@simon <span class="chip chip-clay">Numerator</span></div>
+                  <div class="text-xs text-ink-500 mt-1">Joined Apr 2026</div>
+                  <div class="mt-3 flex items-center gap-4 flex-wrap">
+                    <div><div class="text-[10px] uppercase tracking-widest text-ink-500">Rating</div><div class="font-serif text-4xl tabular-nums">1582</div></div>
+                    <div><div class="text-[10px] uppercase tracking-widest text-ink-500">Peak</div><div class="font-serif text-3xl tabular-nums text-clay">1612</div></div>
+                    <div>
+                      <div class="text-[10px] uppercase tracking-widest text-ink-500">Tier</div>
+                      <div class="inline-flex items-center gap-2 mt-0.5 px-2.5 py-0.5 rounded-full ring-1 ring-yellow-400/40 bg-yellow-400/10">
+                        <span class="text-sm font-semibold text-yellow-300">Gold</span>
+                        <span class="text-[10px] text-ink-600 tabular-nums">118 to next</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Matches</div><div class="text-2xl font-bold tabular-nums mt-1">42</div></div>
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Wins</div><div class="text-2xl font-bold tabular-nums mt-1 text-good">28</div></div>
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Losses</div><div class="text-2xl font-bold tabular-nums mt-1 text-bad">12</div></div>
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Win %</div><div class="text-2xl font-bold tabular-nums mt-1">67%</div></div>
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Draws</div><div class="text-2xl font-bold tabular-nums mt-1 text-ink-700">2</div><div class="text-[10px] text-ink-500 mt-0.5">best-of-3 ties</div></div>
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Current streak</div><div class="text-2xl font-bold tabular-nums mt-1 text-good">3</div><div class="text-[10px] text-ink-500 mt-0.5">wins</div></div>
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Rating Δ avg</div><div class="text-2xl font-bold tabular-nums mt-1 text-good">+8</div><div class="text-[10px] text-ink-500 mt-0.5">last 25</div></div>
+              <div class="card-quiet p-4"><div class="text-[10px] uppercase tracking-widest text-ink-600">Avg solve</div><div class="text-2xl font-bold tabular-nums mt-1 text-ink-700">5s</div></div>
+            </div>
+
+            <div class="flex items-baseline justify-between mb-3">
+              <div class="text-sm font-medium text-ink-700">Recent matches</div>
+              <div class="text-[11px] text-ink-500 uppercase tracking-widest">Tap to expand</div>
+            </div>
+            <div class="space-y-2.5">
+              <div class="card border-good/40 p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="chip chip-good">Win</span>
+                  <span class="text-ink-600 text-sm">vs <span class="text-ink-900 font-medium">@aspen</span></span>
+                  <span class="chip chip-mute">Gold · algebra</span>
+                </div>
+                <div class="flex items-center gap-4 text-sm">
+                  <span class="tabular-nums text-ink-700">4.2s</span>
+                  <span class="tabular-nums font-semibold text-good">+22</span>
+                  <svg class="w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+              </div>
+              <div class="card border-bad/40 p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="chip chip-bad">Loss</span>
+                  <span class="text-ink-600 text-sm">vs <span class="text-ink-900 font-medium">@gauss</span></span>
+                  <span class="chip chip-mute">Gold · calculus</span>
+                </div>
+                <div class="flex items-center gap-4 text-sm">
+                  <span class="tabular-nums text-ink-700">9.1s</span>
+                  <span class="tabular-nums font-semibold text-bad">-18</span>
+                  <svg class="w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+              </div>
+              <div class="card p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="chip chip-mute">Draw</span>
+                  <span class="text-ink-600 text-sm">vs <span class="text-ink-900 font-medium">@euler</span></span>
+                  <span class="chip chip-mute">Master · number theory</span>
+                </div>
+                <div class="flex items-center gap-4 text-sm">
+                  <span class="tabular-nums text-ink-700">6.0s</span>
+                  <span class="tabular-nums font-semibold text-ink-700">0</span>
+                  <svg class="w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================== SETTINGS ================== -->
+      <section id="settings" class="scroll-margin pb-16">
+        <h2 class="font-serif text-3xl mb-4">Settings</h2>
+        <div class="card overflow-hidden">
+          <div class="max-w-3xl mx-auto px-6 py-8">
+            <div class="card-raised p-5 mb-6 flex items-center gap-4">
+              <div class="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white" style="background:#6366F1; outline:2px solid rgba(34,211,238,0.6); outline-offset:2px;">SI</div>
+              <div class="flex-1">
+                <div class="font-serif text-2xl flex items-center gap-2 flex-wrap">@simon <span class="chip chip-clay">Numerator</span></div>
+                <div class="text-xs text-ink-600 mt-0.5">Profile preview · how others see you</div>
+              </div>
+              <span class="text-[10px] uppercase tracking-widest text-good">saved</span>
+            </div>
+
+            <div class="flex gap-1 mb-5 p-1 rounded-2xl bg-cream-100/40 border border-cream-200">
+              <button class="flex-1 px-4 py-2 rounded-xl text-sm font-semibold bg-clay text-cream-50">Profile</button>
+              <button class="flex-1 px-4 py-2 rounded-xl text-sm font-semibold text-ink-700">Preferences</button>
+              <button class="flex-1 px-4 py-2 rounded-xl text-sm font-semibold text-ink-700">Practice</button>
+            </div>
+
+            <div class="card p-6 mb-5">
+              <div class="text-xs uppercase tracking-widest text-clay font-semibold">Profile picture</div>
+              <div class="text-xs text-ink-600 mt-0.5">Shown in duels, profile, and the leaderboard.</div>
+              <div class="flex flex-wrap items-center gap-3 mt-3">
+                <button class="btn-primary text-sm px-4 py-2">Upload picture</button>
+                <span class="text-xs text-ink-600">PNG, JPG, GIF · up to 2MB</span>
+              </div>
+              <div class="mt-5">
+                <label class="block text-sm font-medium text-ink-700 mb-1">Initials (max 2)</label>
+                <input class="w-full rounded-xl bg-cream-100 border border-cream-200 px-4 py-3 text-lg" value="SI" />
+              </div>
+              <div class="mt-5">
+                <div class="text-sm font-medium text-ink-700 mb-1">Color</div>
+                <div class="flex flex-wrap gap-2">
+                  <button class="w-10 h-10 rounded-full ring-2 ring-clay ring-offset-2 ring-offset-cream-50 scale-110" style="background:#6366F1"></button>
+                  <button class="w-10 h-10 rounded-full" style="background:#DB2777"></button>
+                  <button class="w-10 h-10 rounded-full" style="background:#F59E0B"></button>
+                  <button class="w-10 h-10 rounded-full" style="background:#10B981"></button>
+                  <button class="w-10 h-10 rounded-full" style="background:#8B5CF6"></button>
+                  <button class="w-10 h-10 rounded-full" style="background:#0EA5E9"></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-6 mb-5">
+              <div class="flex items-start justify-between">
+                <div>
+                  <div class="text-xs uppercase tracking-widest text-clay font-semibold">Title</div>
+                  <div class="text-xs text-ink-600 mt-0.5">Equip a title under your name. Higher tiers unlock as you climb.</div>
+                </div>
+                <span class="text-[10px] uppercase tracking-widest text-ink-500 tabular-nums">Peak 1612</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                <button class="flex items-center justify-between px-4 py-3 rounded-xl border border-clay/60 bg-clay/10 text-left">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg text-clay">⊕</span>
+                    <div>
+                      <div class="font-semibold text-clay">Numerator</div>
+                      <div class="text-[11px] text-ink-500 uppercase tracking-widest">Unlock at 1500</div>
+                    </div>
+                  </div>
+                  <span class="chip chip-clay">Equipped</span>
+                </button>
+                <button class="flex items-center justify-between px-4 py-3 rounded-xl border border-cream-200 bg-cream-100/30 text-left">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg text-cyan-200">◈</span>
+                    <div>
+                      <div class="font-semibold text-cyan-200">Theorist</div>
+                      <div class="text-[11px] text-ink-500 uppercase tracking-widest">Unlock at 1700</div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] uppercase tracking-widest text-ink-500">Locked</span>
+                </button>
+                <button class="flex items-center justify-between px-4 py-3 rounded-xl border border-cream-200 bg-cream-100/30 text-left opacity-40 cursor-not-allowed">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg text-rose-300">★</span>
+                    <div>
+                      <div class="font-semibold text-rose-300">Grandmaster</div>
+                      <div class="text-[11px] text-ink-500 uppercase tracking-widest">Unlock at 2600</div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] uppercase tracking-widest text-ink-500">Locked</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="card-quiet p-5 flex items-center justify-between gap-4">
+              <div>
+                <div class="text-sm font-semibold">Sign out</div>
+                <div class="text-xs text-ink-600">End your session on this device.</div>
+              </div>
+              <button class="btn-ghost text-sm px-4 py-2">Log out</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="text-center text-[10px] uppercase tracking-widest text-ink-500 pt-4 pb-10">
+        UI preview · static mockups only · no backend
+      </footer>
+    </main>
+
+    <script>
+      // Highlight the currently-visible section in the top nav.
+      const sections = document.querySelectorAll('section[id]');
+      const tabs = document.querySelectorAll('.nav-tab');
+      const obs = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            tabs.forEach((t) => t.classList.toggle('active', t.getAttribute('href') === '#' + e.target.id));
+          }
+        }
+      }, { rootMargin: '-40% 0px -55% 0px' });
+      sections.forEach((s) => obs.observe(s));
+    </script>
+  </body>
+</html>
