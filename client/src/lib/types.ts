@@ -169,6 +169,88 @@ export type LobbyComplete = {
   }>;
 };
 
+export type TournamentSettings = {
+  bracketSize: 4 | 8 | 16;
+  bestOf: 1 | 3 | 5;
+  timeLimitSec: number;
+  tiers: string[];
+  categories: string[];
+};
+
+export type TournamentPlayer = {
+  userId: string;
+  username: string;
+  avatarColor: string;
+  avatarInitials: string;
+  avatarImage: string;
+  equippedTitle: string;
+  submitted: boolean;
+  connected: boolean;
+};
+
+export type TournamentMatch = {
+  id: string;
+  round: number;
+  index: number;
+  aId: string | null;
+  bId: string | null;
+  aBye: boolean;
+  bBye: boolean;
+  winsA: number;
+  winsB: number;
+  winnerId: string | null;
+  played: boolean;
+};
+
+export type TournamentView = {
+  code: string;
+  hostId: string;
+  settings: TournamentSettings;
+  state: "waiting" | "match_intro" | "in_game" | "between_games" | "match_over" | "complete";
+  bracket: TournamentMatch[];
+  currentMatchId: string | null;
+  currentGame: number;
+  bestOf: number;
+  bracketSize: number;
+  champion: string | null;
+  players: TournamentPlayer[];
+};
+
+export type TournamentProblem = {
+  id: string;
+  prompt: string;
+  answerType: "numeric" | "multiple_choice";
+  options?: string[];
+  timeLimitSec: number;
+  calculatorAllowed: boolean;
+  tier: string;
+};
+
+export type TournamentGameEnded = {
+  matchId: string;
+  game: number;
+  gameWinnerId: string | null;
+  winsA: number;
+  winsB: number;
+  correctAnswer: string;
+  solution: string;
+  a: { userId: string; answer: string | null; correct: boolean; timeMs: number | null } | null;
+  b: { userId: string; answer: string | null; correct: boolean; timeMs: number | null } | null;
+};
+
+export type TournamentMatchOver = {
+  matchId: string;
+  winnerId: string | null;
+  winsA: number;
+  winsB: number;
+  reason?: string;
+};
+
+export type TournamentComplete = {
+  championId: string | null;
+  bracket: TournamentMatch[];
+};
+
 export type HistoryResponse = {
   matches: Array<{
     id: string;

@@ -56,6 +56,14 @@ export function Modes() {
             onClick={() => navigate("/lobby/join")}
             accent="ghost"
           />
+          <ModeCard
+            badge="Custom"
+            title="Tournament"
+            subtitle="Single-elimination bracket of 4, 8, or 16. Winners advance until one stands."
+            cta="Create bracket"
+            onClick={() => navigate("/tournament/new")}
+            accent="primary"
+          />
         </div>
       </main>
     </div>

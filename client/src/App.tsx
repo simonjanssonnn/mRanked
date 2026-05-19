@@ -3,10 +3,12 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useAuth } from "./store/auth";
 import { useGame } from "./store/game";
 import { useLobby } from "./store/lobby";
+import { useTournament } from "./store/tournament";
 import { disconnectSocket, getSocket } from "./lib/socket";
 import type {
   MatchFound, MatchQuestion, MatchResult, RoundResult,
   LobbyView, LobbyProblem, LobbyRoundEnded, LobbyComplete,
+  TournamentView, TournamentProblem, TournamentGameEnded, TournamentMatchOver, TournamentComplete,
 } from "./lib/types";
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
@@ -22,6 +24,8 @@ import { Modes } from "./pages/Modes";
 import { LobbyCreate } from "./pages/LobbyCreate";
 import { LobbyJoin } from "./pages/LobbyJoin";
 import { LobbyRoom } from "./pages/LobbyRoom";
+import { TournamentCreate } from "./pages/TournamentCreate";
+import { TournamentRoom } from "./pages/TournamentRoom";
 
 export default function App() {
   const { user, loading, init } = useAuth();
@@ -151,6 +155,46 @@ function AuthedApp() {
       lobby().setRoomError(p);
     };
 
+    // ───── Tournament (custom bracket) listeners ─────
+    const tour = useTournament.getState;
+    const onTourCreated = (p: { code: string }) => {
+      navigate(`/tournament/${p.code}`, { replace: true });
+    };
+    const onTourJoined = (p: { code: string }) => {
+      navigate(`/tournament/${p.code}`, { replace: true });
+    };
+    const onTourJoinFailed = (p: { reason: string }) => {
+      tour().setJoinError(p.reason);
+    };
+    const onTourState = (p: TournamentView) => {
+      tour().setView(p);
+    };
+    const onTourCountdown = (p: { secondsLeft: number }) => {
+      tour().setCountdown(p.secondsLeft);
+    };
+    const onTourGameStarting = (_p: { matchId: string; game: number; bestOf: number }) => {
+      tour().prepGame();
+    };
+    const onTourGameStarted = (p: { matchId: string; game: number; bestOf: number; problem: TournamentProblem; gameStartedAt: number }) => {
+      tour().setProblem(p.problem, p.gameStartedAt);
+    };
+    const onTourPlayerSubmitted = (_p: { userId: string }) => {
+      // Full state broadcast follows; presence-only hint.
+    };
+    const onTourGameEnded = (p: TournamentGameEnded) => {
+      tour().setGameEnded(p);
+    };
+    const onTourMatchOver = (p: TournamentMatchOver) => {
+      tour().setMatchOver(p);
+    };
+    const onTourComplete = (p: TournamentComplete) => {
+      tour().setComplete(p);
+    };
+    const onTourError = (p: { code: string; message?: string }) => {
+      console.warn("Tournament error:", p);
+      tour().setRoomError(p);
+    };
+
     socket.on("connect_error", onConnectError);
     socket.on("queue:waiting", onQueueWaiting);
     socket.on("queue:left", onQueueLeft);
@@ -172,6 +216,18 @@ function AuthedApp() {
     socket.on("lobby:round_ended", onLobbyRoundEnded);
     socket.on("lobby:complete", onLobbyComplete);
     socket.on("lobby:error", onLobbyError);
+    socket.on("tournament:created", onTourCreated);
+    socket.on("tournament:joined", onTourJoined);
+    socket.on("tournament:join_failed", onTourJoinFailed);
+    socket.on("tournament:state", onTourState);
+    socket.on("tournament:countdown", onTourCountdown);
+    socket.on("tournament:game_starting", onTourGameStarting);
+    socket.on("tournament:game_started", onTourGameStarted);
+    socket.on("tournament:player_submitted", onTourPlayerSubmitted);
+    socket.on("tournament:game_ended", onTourGameEnded);
+    socket.on("tournament:match_over", onTourMatchOver);
+    socket.on("tournament:complete", onTourComplete);
+    socket.on("tournament:error", onTourError);
     socket.on("error", onServerError);
 
     return () => {
@@ -198,6 +254,18 @@ function AuthedApp() {
       socket.off("lobby:round_ended", onLobbyRoundEnded);
       socket.off("lobby:complete", onLobbyComplete);
       socket.off("lobby:error", onLobbyError);
+      socket.off("tournament:created", onTourCreated);
+      socket.off("tournament:joined", onTourJoined);
+      socket.off("tournament:join_failed", onTourJoinFailed);
+      socket.off("tournament:state", onTourState);
+      socket.off("tournament:countdown", onTourCountdown);
+      socket.off("tournament:game_starting", onTourGameStarting);
+      socket.off("tournament:game_started", onTourGameStarted);
+      socket.off("tournament:player_submitted", onTourPlayerSubmitted);
+      socket.off("tournament:game_ended", onTourGameEnded);
+      socket.off("tournament:match_over", onTourMatchOver);
+      socket.off("tournament:complete", onTourComplete);
+      socket.off("tournament:error", onTourError);
       socket.off("error", onServerError);
     };
   }, [navigate, setUser]);
@@ -224,6 +292,8 @@ function AuthedApp() {
       <Route path="/lobby/new" element={<LobbyCreate />} />
       <Route path="/lobby/join" element={<LobbyJoin />} />
       <Route path="/lobby/:code" element={<LobbyRoom />} />
+      <Route path="/tournament/new" element={<TournamentCreate />} />
+      <Route path="/tournament/:code" element={<TournamentRoom />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
